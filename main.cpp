@@ -53,13 +53,14 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 struct Platform {
     float x, z;     
     float width, depth; 
-    float height;    
+    float height;  
+    float heightdelta;  
 };
 
 // platforms
 std::vector<Platform> platforms = {
-    {2.0f, 2.0f, 2.0f, 2.0f, 1.0f},
-    {-3.0f, -3.0f, 2.0f, 2.0f, 2.0f}
+    {2.0f, 2.0f, 2.0f, 2.0f, 1.0f, 2.0f},
+    {-3.0f, -3.0f, 2.0f, 2.0f, 2.0f, 0.0f}
 };
 
 void drawCube(float size) {
@@ -103,7 +104,7 @@ void drawPlatforms() {
     glColor3f(0.5f, 0.5f, 0.5f);
     for (const auto& platform : platforms) {
         glPushMatrix();
-        glTranslatef(platform.x, platform.height / 2.0f, platform.z);
+        glTranslatef(platform.x, (platform.height / 2.0f) + platform.heightdelta, platform.z);
         glScalef(platform.width, platform.height, platform.depth);
         drawCube(1.0f);
         glPopMatrix();
@@ -115,18 +116,19 @@ float getPlatformHeight(float x, float z, float currentY) {
         bool isWithinXBounds = x >= platform.x - platform.width / 2 && x <= platform.x + platform.width / 2;
         bool isWithinZBounds = z >= platform.z - platform.depth / 2 && z <= platform.z + platform.depth / 2;
         if (isWithinXBounds && isWithinZBounds) {
-            return platform.height;
+            return platform.height + platform.heightdelta;
         }
     }
     return groundY; 
 }
 
-bool isNearPlatform(float x, float z, float y, float threshold) {
+bool isNearPlatform(float x, float z, float y, float threshold, float camY) {
     for (const auto& platform : platforms) {
         bool isNearXBounds = (x >= platform.x - platform.width / 2 - threshold && x <= platform.x + platform.width / 2 + threshold);
         bool isNearZBounds = (z >= platform.z - platform.depth / 2 - threshold && z <= platform.z + platform.depth / 2 + threshold);
         bool isBelowPlatformHeight = (y < platform.height);
-        if (isNearXBounds && isNearZBounds && isBelowPlatformHeight) {
+        bool cancrouchbeneeth = (camY > platform.heightdelta);
+        if (isNearXBounds && isNearZBounds && isBelowPlatformHeight && cancrouchbeneeth) {
             return true;
         }
     }
@@ -154,15 +156,36 @@ void updateMovement() {
         moveZ += sin(radYaw);
     }
     if ((keys[GLFW_KEY_LEFT_CONTROL] || keys[GLFW_KEY_RIGHT_CONTROL]) && !isJumping && !sprinting) {
-        if (!crouch) {
+        bool canUncrouch = true;
+        for (const auto& platform : platforms) {
+            if (camX >= platform.x - platform.width / 2 && camX <= platform.x + platform.width / 2 &&
+                camZ >= platform.z - platform.depth / 2 && camZ <= platform.z + platform.depth / 2 &&
+                camY + 1.0f <= platform.height + platform.heightdelta) {
+                canUncrouch = false;
+                break;
+            }
+        }
+        if (!crouch && canUncrouch) {
             crouch = true;
             camY -= 1.0f; 
             moveSpeed -= 0.03f;
         }
-    } else if ((!keys[GLFW_KEY_LEFT_CONTROL] && !keys[GLFW_KEY_RIGHT_CONTROL]) && crouch) {
-        camY += 1.0f;
-        moveSpeed += 0.03f;
-        crouch = false;
+    } else if ((!keys[GLFW_KEY_LEFT_CONTROL] && !keys[GLFW_KEY_RIGHT_CONTROL]) && crouch ) {
+        bool canUncrouch = true;
+        for (const auto& platform : platforms) {
+            if (camX >= platform.x - platform.width / 2 && camX <= platform.x + platform.width / 2 &&
+                camZ >= platform.z - platform.depth / 2 && camZ <= platform.z + platform.depth / 2 &&
+                camY + 1.0f <= platform.height + platform.heightdelta) {
+                canUncrouch = false;
+                break;
+            }
+        }
+
+        if (canUncrouch) {
+            crouch = false;
+            camY += 1.0f;
+            moveSpeed += 0.03f;
+        }
     }
 
 
@@ -256,7 +279,7 @@ void updateMovement() {
 
         }
     }
-    if (!isJumping && isNearPlatform(nextCamX, nextCamZ, playerY, collisionThreshold)) {
+    if (!isJumping && isNearPlatform(nextCamX, nextCamZ, playerY, collisionThreshold, camY)) {
         moveX = 0.0f;
         moveZ = 0.0f;
     }
