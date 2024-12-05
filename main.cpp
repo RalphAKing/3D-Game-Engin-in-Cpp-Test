@@ -122,10 +122,10 @@ float getPlatformHeight(float x, float z, float currentY) {
     return groundY; 
 }
 
-bool isNearPlatform(float x, float z, float y, float threshold, float camY) {
+bool isNearPlatform(float x, float z, float y, float camY) {
     for (const auto& platform : platforms) {
-        bool isNearXBounds = (x >= platform.x - platform.width / 2 - threshold && x <= platform.x + platform.width / 2 + threshold);
-        bool isNearZBounds = (z >= platform.z - platform.depth / 2 - threshold && z <= platform.z + platform.depth / 2 + threshold);
+        bool isNearXBounds = (x >= platform.x - platform.width / 2 - collisionThreshold && x <= platform.x + platform.width / 2 + collisionThreshold);
+        bool isNearZBounds = (z >= platform.z - platform.depth / 2 - collisionThreshold && z <= platform.z + platform.depth / 2 + collisionThreshold);
         bool isBelowPlatformHeight = (y < platform.height);
         bool cancrouchbeneeth = (camY > platform.heightdelta);
         if (isNearXBounds && isNearZBounds && isBelowPlatformHeight && cancrouchbeneeth) {
@@ -279,7 +279,7 @@ void updateMovement() {
 
         }
     }
-    if (!isJumping && isNearPlatform(nextCamX, nextCamZ, playerY, collisionThreshold, camY)) {
+    if (!isJumping && isNearPlatform(nextCamX, nextCamZ, playerY, camY)) {
         moveX = 0.0f;
         moveZ = 0.0f;
     }
