@@ -27,7 +27,8 @@ float moveSpeed = 0.1f;
 const float turnSpeed = 0.1f;
 double lastMouseX, lastMouseY;
 bool keys[1024] = {false};
-float collisionThreshold = 0.1f;
+float collisionThreshold = 0.0f;
+
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
@@ -37,18 +38,8 @@ void drawGrids(int lines, float spacing);
 void display();
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
-void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-        keys[key] = true;
-        if (key == GLFW_KEY_SPACE && !isJumping && playerY == groundY && !crouch && stamina >= 5) {
-            isJumping = true;
-            velocityY = jumpSpeed;
-            stamina -= 3; 
-        }
-    } else if (action == GLFW_RELEASE) {
-        keys[key] = false;
-    }
-}
+
+
 
 struct Platform {
     float x, z;     
@@ -57,9 +48,11 @@ struct Platform {
     float heightdelta;  
 };
 
+
+
 // platforms
 std::vector<Platform> platforms = {
-    {2.0f, 2.0f, 2.0f, 2.0f, 1.0f, 2.0f},
+    {2.0f, 2.0f, 2.0f, 2.0f, 1.0f, 1.5f},
     {-3.0f, -3.0f, 2.0f, 2.0f, 2.0f, 0.0f}
 };
 
@@ -111,28 +104,67 @@ void drawPlatforms() {
     }
 }
 
+
 float getPlatformHeight(float x, float z, float currentY) {
+    float closestPlatformHeight = groundY;
     for (const auto& platform : platforms) {
         bool isWithinXBounds = x >= platform.x - platform.width / 2 && x <= platform.x + platform.width / 2;
         bool isWithinZBounds = z >= platform.z - platform.depth / 2 && z <= platform.z + platform.depth / 2;
+
         if (isWithinXBounds && isWithinZBounds) {
-            return platform.height + platform.heightdelta;
+            if (platform.height + platform.heightdelta <= currentY) {
+                if (platform.height + platform.heightdelta > closestPlatformHeight) {
+                    closestPlatformHeight = platform.height + platform.heightdelta;
+                }
+            }
         }
     }
-    return groundY; 
+
+    return closestPlatformHeight;
 }
+
+
 
 bool isNearPlatform(float x, float z, float y, float camY) {
     for (const auto& platform : platforms) {
         bool isNearXBounds = (x >= platform.x - platform.width / 2 - collisionThreshold && x <= platform.x + platform.width / 2 + collisionThreshold);
         bool isNearZBounds = (z >= platform.z - platform.depth / 2 - collisionThreshold && z <= platform.z + platform.depth / 2 + collisionThreshold);
-        bool isBelowPlatformHeight = (y < platform.height);
-        bool cancrouchbeneeth = (camY > platform.heightdelta);
-        if (isNearXBounds && isNearZBounds && isBelowPlatformHeight && cancrouchbeneeth) {
-            return true;
+        
+
+        bool isBelowPlatform = (y <= platform.height + platform.heightdelta - 0.1f);
+        bool canwalkbeneeth = (camY <= platform.height + platform.heightdelta - 0.1f ); 
+
+
+        if (isNearXBounds && isNearZBounds) {
+            if ((camY-y)<=platform.height+platform.heightdelta - 0.1f && !(platform.heightdelta>(camY-y)) && canwalkbeneeth) {
+                return true;  
+            }
+            
+            if (!canwalkbeneeth && isBelowPlatform ) {
+                return true;  
+            }
         }
     }
     return false;
+}
+
+
+
+
+
+
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+        keys[key] = true;
+        if (key == GLFW_KEY_SPACE && !isJumping && playerY == groundY && !crouch && stamina >= 5) {
+
+            isJumping = true;
+            velocityY = jumpSpeed;
+            stamina -= 3;
+        }
+    } else if (action == GLFW_RELEASE) {
+        keys[key] = false;
+    }
 }
 
 void updateMovement() {
@@ -156,16 +188,7 @@ void updateMovement() {
         moveZ += sin(radYaw);
     }
     if ((keys[GLFW_KEY_LEFT_CONTROL] || keys[GLFW_KEY_RIGHT_CONTROL]) && !isJumping && !sprinting) {
-        bool canUncrouch = true;
-        for (const auto& platform : platforms) {
-            if (camX >= platform.x - platform.width / 2 && camX <= platform.x + platform.width / 2 &&
-                camZ >= platform.z - platform.depth / 2 && camZ <= platform.z + platform.depth / 2 &&
-                camY + 1.0f <= platform.height + platform.heightdelta) {
-                canUncrouch = false;
-                break;
-            }
-        }
-        if (!crouch && canUncrouch) {
+        if (!crouch ) {
             crouch = true;
             camY -= 1.0f; 
             moveSpeed -= 0.03f;
@@ -175,7 +198,7 @@ void updateMovement() {
         for (const auto& platform : platforms) {
             if (camX >= platform.x - platform.width / 2 && camX <= platform.x + platform.width / 2 &&
                 camZ >= platform.z - platform.depth / 2 && camZ <= platform.z + platform.depth / 2 &&
-                camY + 1.0f <= platform.height + platform.heightdelta) {
+                camY + 1.0f >= platform.heightdelta) {
                 canUncrouch = false;
                 break;
             }
@@ -241,10 +264,22 @@ void updateMovement() {
         stamina += 0.2f;
     }
 
+
     float nextCamX = camX + moveX * moveSpeed;
     float nextCamZ = camZ + moveZ * moveSpeed;
 
-    float platformHeight = getPlatformHeight(camX, camZ, playerY); 
+    if (isNearPlatform(nextCamX, nextCamZ, playerY, camY)) {
+        moveX = 0.0f;
+        moveZ = 0.0f;
+        velocityY=0.0f;
+    }
+    camX += moveX * moveSpeed;
+    camZ += moveZ * moveSpeed;
+
+
+    float platformHeight = getPlatformHeight(camX, camZ, playerY);
+
+
     if (isJumping) {
         velocityY += gravity;
         playerY += velocityY;
@@ -267,7 +302,9 @@ void updateMovement() {
                 crouch=false;
             }
         } else {
-            playerY = platformHeight;
+            if (platformHeight < playerY) {
+                playerY = platformHeight;
+            }
             if (!crouch) {
                 camY = playerY + 2.2f;
             }
@@ -279,12 +316,7 @@ void updateMovement() {
 
         }
     }
-    if (!isJumping && isNearPlatform(nextCamX, nextCamZ, playerY, camY)) {
-        moveX = 0.0f;
-        moveZ = 0.0f;
-    }
-    camX += moveX * moveSpeed;
-    camZ += moveZ * moveSpeed;
+
 }
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
@@ -311,6 +343,7 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
     if (camPitch > 89.0f) camPitch = 89.0f;
     if (camPitch < -89.0f) camPitch = -89.0f;
 }
+
 
 void drawGrid(int lines, float spacing, float r, float g, float b) {
     glColor3f(r, g, b);
@@ -408,15 +441,21 @@ public:
 void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     updateMovement();
+    
     glLoadIdentity();
     glRotatef(camPitch, 1.0f, 0.0f, 0.0f);
     glRotatef(camYaw, 0.0f, 1.0f, 0.0f);
     glTranslatef(-camX, -camY, -camZ);
+    
     drawGrids(GRID_WIDTH, 1.0f);
     drawPlatforms();
+    
+    
     GUI::drawHUD(); 
+    
     glfwSwapBuffers(glfwGetCurrentContext());
 }
+
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
