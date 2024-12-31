@@ -11,6 +11,11 @@ float camX = 0.0f, camY = 2.2f, camZ = 5.0f;
 float camYaw = 0.0f, camPitch = 0.0f;
 float playerY = 0.0f;
 
+float frameCount = 0;
+float lastFPSUpdate = 0.0f;
+int Vsync = 0; //if 0 then disabled if 1 then enabled
+bool FPScount = false; //turns on a printed FPS count in terminal that prints once a seccond
+
 // Movement 
 bool isJumping = false;
 float velocityY = 0.0f;
@@ -444,9 +449,20 @@ public:
 };
 
 void display() {
+    static float accumulator = 0.0f;
+    static const float fixedTimeStep = 1.0f / 60.0f; 
+    float currentTime = glfwGetTime();
+    float deltaTime = currentTime - lastTime;
+    lastTime = currentTime;
+
+    accumulator += deltaTime;
+    while (accumulator >= fixedTimeStep) {
+        updateMovement();  
+        accumulator -= fixedTimeStep;  
+    }
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    updateMovement();
-    
+
     glLoadIdentity();
     glRotatef(camPitch, 1.0f, 0.0f, 0.0f);
     glRotatef(camYaw, 0.0f, 1.0f, 0.0f);
@@ -454,12 +470,21 @@ void display() {
     
     drawGrids(GRID_WIDTH, 1.0f);
     drawPlatforms();
-    
-    
     GUI::drawHUD(); 
     
     glfwSwapBuffers(glfwGetCurrentContext());
+
+    if (FPScount) {
+        frameCount++;
+        if (currentTime - lastFPSUpdate >= 1.0f) {
+            float fps = frameCount / (currentTime - lastFPSUpdate);
+            std::cout << "FPS: " << fps << std::endl;
+            frameCount = 0;
+            lastFPSUpdate = currentTime;
+        }
+    }
 }
+
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -489,7 +514,7 @@ int main() {
         std::cerr << "Failed to initialize GLEW" << std::endl;
         return -1;
     }
-
+    glfwSwapInterval(Vsync);
     glfwSetKeyCallback(window, keyCallback);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouseCallback);
