@@ -200,6 +200,9 @@ void updateMovement() {
                 camZ >= platform.z - platform.depth / 2 && camZ <= platform.z + platform.depth / 2 &&
                 camY + 1.0f >= platform.heightdelta) {
                 canUncrouch = false;
+                if (playerY + 0.1 >= platform.heightdelta) {
+                    canUncrouch = true;
+                }
                 break;
             }
         }
@@ -300,6 +303,8 @@ void updateMovement() {
             velocityY = 0.0f;
             if (crouch) {
                 crouch=false;
+                camY += 1.0f;
+                moveSpeed += 0.03f;
             }
         } else {
             if (platformHeight < playerY) {
