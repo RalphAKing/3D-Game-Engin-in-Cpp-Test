@@ -462,12 +462,13 @@ void display() {
     }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
 
     glLoadIdentity();
     glRotatef(camPitch, 1.0f, 0.0f, 0.0f);
     glRotatef(camYaw, 0.0f, 1.0f, 0.0f);
     glTranslatef(-camX, -camY, -camZ);
-    
+
     drawGrids(GRID_WIDTH, 1.0f);
     drawPlatforms();
     GUI::drawHUD(); 
@@ -491,7 +492,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(45.0, (double)width / height, 0.1, 100.0);
+    gluPerspective(45.0, (double)width / height, 0.1, 100.0);  
     glMatrixMode(GL_MODELVIEW);
 }
 
