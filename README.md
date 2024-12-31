@@ -1,27 +1,95 @@
-Basic 3D game engine made in Cpp (in development)
-Features
-- player movement
-    - jump
-    - crouch
-    - sprint
-    - walk
-    - stamina
-    - crouch beneeth
-        - anti uncrouch benneth object
-- block and platform creation
-    - able to create bocks and platforms of spacific sizes that are interactable
-    - be able to set platform start height
-- gui
-    - customizable fixed gui that can have items added onto it 
+# 3D Game Engine (in development)
 
+A simple yet powerful 3D game engine written in C++ with OpenGL. This engine is designed to provide essential features for game development, focusing on player movement, platform interactions, and a customizable GUI.
+
+## Features
+
+### Player Movement
+- **Basic Actions**: Walk, sprint, crouch, and jump.
+- **Advanced Mechanics**:
+  - **Stamina System**: Limits sprinting and jumping.
+  - **Crouch Mechanics**: Includes collision detection to prevent uncrouching beneath objects.
+
+### Block and Platform System
+- Create blocks and platforms of customizable sizes.
+- Define platform start heights for varied level designs.
+- Platforms are fully interactable, supporting collision and navigation.
+
+### Graphical User Interface (GUI)
+- Customizable fixed GUI layout.
+- Add and manage items to enhance user experience.
+
+## Getting Started
+
+### Prerequisites
+- **Libraries**: 
+  - [GLFW](https://www.glfw.org/) - For managing windows and inputs.
+  - [GLEW](http://glew.sourceforge.net/) - For handling OpenGL extensions.
+- **Development Environment**: Any C++ compiler supporting C++17 or later.
+- **Build System**: Makefile-based setup (editable for custom requirements).
+
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/RalphAKing/3D-Game-Engin-in-Cpp-Test.git
+   ```
+2. Navigate to the project directory:
+   ```bash
+   cd 3D-Game-Engin-in-Cpp-Test
+   ```
+3. Build the project using the provided Makefile:
+   ```bash
+   make
+   ```
+
+### Running the Engine
+Run the compiled executable to start the game engine:
+```bash
+./main
+```
+
+## Code Highlights
+
+### Core Movement Mechanics
+- Comprehensive player movement system with jumping, sprinting, crouching, and stamina control.
+- Collision detection for platforms and surrounding objects.
+
+### Platform Interaction
+- Ability to create and manipulate platforms with adjustable height and size.
+- Dynamic collision detection for smooth navigation and interactions.
+
+### GUI Customization
+- Easily add GUI elements through a dedicated interface.
+
+## Contributing
+
+Contributions are welcome! To contribute:
+1. Fork the repository.
+2. Create a feature branch:
+   ```bash
+   git checkout -b feature-name
+   ```
+3. Commit your changes:
+   ```bash
+   git commit -m "Description of your changes"
+   ```
+4. Push to the branch:
+   ```bash
+   git push origin feature-name
+   ```
+5. Submit a pull request.
+
+## Future Plans
+- Advanced lighting and shadows.
+- Networking for multiplayer support.
+- Physics engine integration.
+- Enhanced level editor for seamless design.
 
 ## License
 
-This project is open-source and available for modification and use under the MIT license.
+This project is licensed under the MIT License. See the full license text below:
 
-### MIT License
-
-```
+```plaintext
 MIT License
 
 Copyright (c) 2024 Ralph King
