@@ -81,7 +81,7 @@ Contributions are welcome! To contribute:
 
 ## Future Plans
 - Advanced lighting and shadows.
-- Networking for multiplayer support.
+- Chickens
 - Physics engine integration.
 - Enhanced level editor for seamless design.
 
