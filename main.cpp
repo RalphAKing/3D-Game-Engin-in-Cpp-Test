@@ -3,6 +3,8 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 const int GRID_WIDTH = 10;
 const int GRID_HEIGHT = 10;
@@ -14,7 +16,7 @@ float playerY = 0.0f;
 float frameCount = 0;
 float lastFPSUpdate = 0.0f;
 int Vsync = 0; //if 0 then disabled if 1 then enabled
-bool FPScount = false; //turns on a printed FPS count in terminal that prints once a seccond
+bool FPScount = false; //turns on a fps count which is displayed in the top right of screen 
 
 // Movement 
 bool isJumping = false;
@@ -43,7 +45,106 @@ void drawGrids(int lines, float spacing);
 void display();
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
+GLuint fontTexture;
+int fontWidth, fontHeight;
 
+void loadFont(const char* filePath) {
+    int channels;
+    unsigned char* image = stbi_load(filePath, &fontWidth, &fontHeight, &channels, 4);
+    if (image == nullptr) {
+        std::cerr << "Failed to load font texture! Path: " << filePath << std::endl;
+        std::cerr << "Error: " << stbi_failure_reason() << std::endl;
+        return;
+    }
+
+    std::cout << "Font texture loaded: " << fontWidth << "x" << fontHeight << " pixels" << std::endl;
+
+    glGenTextures(1, &fontTexture);
+    glBindTexture(GL_TEXTURE_2D, fontTexture);
+  
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, fontWidth, fontHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+
+    stbi_image_free(image);
+}
+
+
+GLuint loadTexture(const char* filename) {
+    int width, height, nrChannels;
+    unsigned char* data = stbi_load(filename, &width, &height, &nrChannels, 0);
+    if (!data) {
+        std::cerr << "Failed to load texture: " << filename << std::endl;
+        return 0;
+    }
+
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    if (nrChannels == 3) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    } else if (nrChannels == 4) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    }
+
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    stbi_image_free(data);
+    return textureID;
+}
+
+void renderText(const std::string& text, float x, float y, float scale, GLuint fontTexture) {
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBindTexture(GL_TEXTURE_2D, fontTexture);
+
+    glPushMatrix();
+    glLoadIdentity();
+    glTranslatef(x, y, 0.0f);
+    glScalef(scale, scale, 1.0f);
+
+    for (char c : text) {
+        if (c == ' ') {
+            glTranslatef(0.6f, 0.0f, 0.0f);
+            continue;
+        }
+
+        int charIndex = (int)c;
+        float u = (charIndex % 16) / 16.0f;
+        float v = (charIndex / 16) / 16.0f;
+        float charWidth = 1.0f / 16.0f;
+        float charHeight = 1.0f / 16.0f;
+
+        glBegin(GL_QUADS);
+        glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        glTexCoord2f(u, v + charHeight);
+        glVertex2f(0.0f, 1.0f);
+        glTexCoord2f(u + charWidth, v + charHeight);
+        glVertex2f(1.0f, 1.0f);
+        glTexCoord2f(u + charWidth, v);
+        glVertex2f(1.0f, 0.0f);
+        glTexCoord2f(u, v);
+        glVertex2f(0.0f, 0.0f);
+
+        glEnd();
+
+        glTranslatef(0.6f, 0.0f, 0.0f);
+    }
+
+    glPopMatrix();
+    glDisable(GL_BLEND);
+    glDisable(GL_TEXTURE_2D);
+}
 
 
 struct Platform {
@@ -52,8 +153,6 @@ struct Platform {
     float height;  
     float heightdelta;  
 };
-
-
 
 // platforms
 std::vector<Platform> platforms = {
@@ -409,8 +508,6 @@ void drawWalls(int lines, float spacing) {
     glPopMatrix();
 }
 
-
-
 class GUI {
 public:
     static void drawRect(float x, float y, float width, float height, float r, float g, float b) {
@@ -440,7 +537,12 @@ public:
         glLoadIdentity();
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_BLEND);
+        if (FPScount) {
+            std::string fpsText = "FPS: " + std::to_string(static_cast<int>(frameCount / (glfwGetTime() - lastFPSUpdate)));
+            renderText(fpsText, 540.0f, 10.0f, 15.0f, fontTexture); 
+        }
         drawStaminaBar(10.0f, 10.0f, 100.0f, 10.0f, stamina); 
+
         glMatrixMode(GL_PROJECTION);
         glPopMatrix();
         glMatrixMode(GL_MODELVIEW);
@@ -472,20 +574,20 @@ void display() {
     drawGrids(GRID_WIDTH, 1.0f);
     drawPlatforms();
     GUI::drawHUD(); 
-    
-    glfwSwapBuffers(glfwGetCurrentContext());
 
     if (FPScount) {
         frameCount++;
         if (currentTime - lastFPSUpdate >= 1.0f) {
-            float fps = frameCount / (currentTime - lastFPSUpdate);
-            std::cout << "FPS: " << fps << std::endl;
-            frameCount = 0;
-            lastFPSUpdate = currentTime;
+        lastFPSUpdate = currentTime;
+        frameCount = 0; 
         }
+        frameCount++;
     }
-}
+    
 
+
+    glfwSwapBuffers(glfwGetCurrentContext());
+}
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -515,6 +617,12 @@ int main() {
         std::cerr << "Failed to initialize GLEW" << std::endl;
         return -1;
     }
+    loadFont("font.png");
+    if (fontTexture == 0) {
+        std::cerr << "Font texture failed to load" << std::endl;
+        return -1;
+    }
+
     glfwSwapInterval(Vsync);
     glfwSetKeyCallback(window, keyCallback);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
