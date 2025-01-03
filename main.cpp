@@ -36,6 +36,9 @@ double lastMouseX, lastMouseY;
 bool keys[1024] = {false};
 float collisionThreshold = 0.0f;
 
+bool menue = false;
+float savedCamX = 0.0f, savedCamY = 0.0f, savedCamZ = 0.0f;
+float savedCamYaw = 0.0f, savedCamPitch = 0.0f;
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
@@ -111,7 +114,11 @@ void renderText(const std::string& text, float x, float y, float scale, GLuint f
     glPushMatrix();
     glLoadIdentity();
     glTranslatef(x, y, 0.0f);
-    glScalef(scale, scale, 1.0f);
+    if (menue) {
+        glScalef(scale, -scale, 1.0f); 
+    } else {
+        glScalef(scale, scale, 1.0f);
+    }
 
     for (char c : text) {
         if (c == ' ') {
@@ -146,6 +153,14 @@ void renderText(const std::string& text, float x, float y, float scale, GLuint f
     glDisable(GL_TEXTURE_2D);
 }
 
+struct menuedata {
+    std::string text;
+}; 
+
+menuedata menueData[] = {
+    {"Resume"},
+    {"Quit"}
+};
 
 struct Platform {
     float x, z;     
@@ -167,35 +182,28 @@ void drawCube(float size) {
     glVertex3f(halfSize, -halfSize, halfSize);
     glVertex3f(halfSize, halfSize, halfSize);
     glVertex3f(-halfSize, halfSize, halfSize);
-
     glVertex3f(-halfSize, -halfSize, -halfSize);
     glVertex3f(halfSize, -halfSize, -halfSize);
     glVertex3f(halfSize, halfSize, -halfSize);
     glVertex3f(-halfSize, halfSize, -halfSize);
-
     glVertex3f(-halfSize, -halfSize, -halfSize);
     glVertex3f(-halfSize, -halfSize, halfSize);
     glVertex3f(-halfSize, halfSize, halfSize);
     glVertex3f(-halfSize, halfSize, -halfSize);
-
     glVertex3f(halfSize, -halfSize, -halfSize);
     glVertex3f(halfSize, -halfSize, halfSize);
     glVertex3f(halfSize, halfSize, halfSize);
     glVertex3f(halfSize, halfSize, -halfSize);
-
     glVertex3f(-halfSize, halfSize, -halfSize);
     glVertex3f(-halfSize, halfSize, halfSize);
     glVertex3f(halfSize, halfSize, halfSize);
     glVertex3f(halfSize, halfSize, -halfSize);
-
     glVertex3f(-halfSize, -halfSize, -halfSize);
     glVertex3f(-halfSize, -halfSize, halfSize);
     glVertex3f(halfSize, -halfSize, halfSize);
     glVertex3f(halfSize, -halfSize, -halfSize);
     glEnd();
 }
-
-
 
 void drawPlatforms() {
     glColor3f(0.5f, 0.5f, 0.5f);
@@ -207,7 +215,6 @@ void drawPlatforms() {
         glPopMatrix();
     }
 }
-
 
 float getPlatformHeight(float x, float z, float currentY) {
     float closestPlatformHeight = groundY;
@@ -226,8 +233,6 @@ float getPlatformHeight(float x, float z, float currentY) {
 
     return closestPlatformHeight;
 }
-
-
 
 bool isNearPlatform(float x, float z, float y, float camY) {
     for (const auto& platform : platforms) {
@@ -252,14 +257,28 @@ bool isNearPlatform(float x, float z, float y, float camY) {
     return false;
 }
 
-
-
-
-
-
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
         keys[key] = true;
+        if (key == GLFW_KEY_ESCAPE) {
+            menue = !menue;
+            if (menue) {
+                savedCamX = camX;
+                savedCamY = camY;
+                savedCamZ = camZ;
+                savedCamYaw = camYaw;
+                savedCamPitch = camPitch;
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            } else {
+                camX = savedCamX;
+                camY = savedCamY;
+                camZ = savedCamZ;
+                camYaw = savedCamYaw;
+                camPitch = savedCamPitch;
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            }
+        }
+
         if (key == GLFW_KEY_SPACE && !isJumping && playerY == groundY && !crouch && stamina >= 5) {
 
             isJumping = true;
@@ -429,28 +448,65 @@ void updateMovement() {
 }
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
-    double xoffset = xpos - lastMouseX;
-    double yoffset = lastMouseY - ypos; 
+    static bool firstMouse = true;
+    
+    if (firstMouse) {
+        lastMouseX = xpos;
+        lastMouseY = ypos;
+        firstMouse = false;
+    }
 
+    float xoffset = xpos - lastMouseX;
+    float yoffset = ypos - lastMouseY; 
     lastMouseX = xpos;
     lastMouseY = ypos;
 
-    float sensitivity = 0.1f;
-    xoffset *= sensitivity;
-    yoffset *= sensitivity;
+    xoffset *= turnSpeed;
+    yoffset *= turnSpeed;
 
     camYaw += xoffset;
-    camPitch -= yoffset;
-
-    if (camYaw > 180.0f) {
-        camYaw -= 360.0f;
-    }
-    if (camYaw < -180.0f) {
-        camYaw += 360.0f;
-    }
+    camPitch += yoffset;
 
     if (camPitch > 89.0f) camPitch = 89.0f;
     if (camPitch < -89.0f) camPitch = -89.0f;
+}
+
+void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && menue) {
+        double xpos, ypos;
+        glfwGetCursorPos(window, &xpos, &ypos);
+        
+        int width, height;
+        glfwGetWindowSize(window, &width, &height);
+
+        float buttonWidth = 300.0f;
+        float buttonHeight = 100.0f;
+        float buttonSpacing = 50.0f;
+        int numButtons = std::size(menueData);
+        float totalHeight = numButtons * buttonHeight + (numButtons - 1) * buttonSpacing;
+        float startY = (height - totalHeight) / 2.0f;
+        ypos = height - ypos;
+
+        for (int i = 0; i < numButtons; i++) {
+            float buttonX = (width - buttonWidth) / 2.0f;
+            float buttonY = startY + i * (buttonHeight + buttonSpacing);
+
+            if (xpos >= buttonX && xpos <= buttonX + buttonWidth &&
+                ypos >= buttonY && ypos <= buttonY + buttonHeight) {
+                if (menueData[i].text == "Quit") {
+                    glfwSetWindowShouldClose(window, GLFW_TRUE);
+                } else if (menueData[i].text == "Resume") {
+                    menue = false;
+                    camX = savedCamX;
+                    camY = savedCamY;
+                    camZ = savedCamZ;
+                    camYaw = savedCamYaw;
+                    camPitch = savedCamPitch;
+                    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+                }
+            }
+        }
+    }
 }
 
 
@@ -550,30 +606,85 @@ public:
     }
 };
 
-void display() {
+class MENU {
+public:
+    static void drawRectangle(float x, float y, float width, float height) {
+        glColor3f(0.2, 0.2, 0.2);
+        glBegin(GL_QUADS);
+        glVertex2f(x, y);               
+        glVertex2f(x + width, y);      
+        glVertex2f(x + width, y + height); 
+        glVertex2f(x, y + height);     
+        glEnd();
+    }
+    static void drawMENU(GLFWwindow* window) {
+        
+        int width, height;
+        glfwGetWindowSize(window, &width, &height);
+
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        glOrtho(0, width, 0, height, -1, 1); 
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_BLEND);
+
+        int numButtons = std::size(menueData);
+        float buttonWidth = 300.0f;
+        float buttonHeight = 100.0f;
+        float buttonSpacing = 50.0f;
+        float totalHeight = numButtons * buttonHeight + (numButtons - 1) * buttonSpacing;
+        float startY = (height - totalHeight) / 2.0f;
+
+        for (int i = 0; i < numButtons; ++i) {
+            float buttonX = (width - buttonWidth) / 2.0f;
+            float buttonY = startY + i * (buttonHeight + buttonSpacing); 
+            drawRectangle(buttonX, buttonY, buttonWidth, buttonHeight);
+            float textX = buttonX + (buttonWidth - 200.0f) / 2.0f;  
+            float textY = buttonY + (buttonHeight + 50.0f) / 2.0f; 
+            std::string menuetext = menueData[i].text;
+
+            renderText(menuetext, textX, textY, 55.0f, fontTexture); 
+        }
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+        glPopMatrix();
+    }
+};
+
+void display(GLFWwindow* window) {
     static float accumulator = 0.0f;
     static const float fixedTimeStep = 1.0f / 60.0f; 
     float currentTime = glfwGetTime();
     float deltaTime = currentTime - lastTime;
     lastTime = currentTime;
 
-    accumulator += deltaTime;
-    while (accumulator >= fixedTimeStep) {
-        updateMovement();  
-        accumulator -= fixedTimeStep;  
+    if (menue) {
+        MENU::drawMENU(window);
+    } else {
+
+        accumulator += deltaTime;
+        while (accumulator >= fixedTimeStep) {
+            updateMovement();  
+            accumulator -= fixedTimeStep;  
+        }
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glEnable(GL_DEPTH_TEST);
+
+        glLoadIdentity();
+        glRotatef(camPitch, 1.0f, 0.0f, 0.0f);
+        glRotatef(camYaw, 0.0f, 1.0f, 0.0f);
+        glTranslatef(-camX, -camY, -camZ);
+
+        drawGrids(GRID_WIDTH, 1.0f);
+        drawPlatforms();
+        GUI::drawHUD(); 
     }
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
-
-    glLoadIdentity();
-    glRotatef(camPitch, 1.0f, 0.0f, 0.0f);
-    glRotatef(camYaw, 0.0f, 1.0f, 0.0f);
-    glTranslatef(-camX, -camY, -camZ);
-
-    drawGrids(GRID_WIDTH, 1.0f);
-    drawPlatforms();
-    GUI::drawHUD(); 
 
     if (FPScount) {
         frameCount++;
@@ -627,7 +738,13 @@ int main() {
     glfwSetKeyCallback(window, keyCallback);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouseCallback);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetMouseButtonCallback(window, mouseButtonCallback);
+    if (menue) {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    } else {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    }
+
     glfwGetCursorPos(window, &lastMouseX, &lastMouseY);
     glEnable(GL_DEPTH_TEST);
     int width, height;
@@ -635,7 +752,7 @@ int main() {
     framebuffer_size_callback(window, width, height);
     while (!glfwWindowShouldClose(window)) {
 
-        display();
+        display(window);
 
         glfwPollEvents();
     }
