@@ -19,6 +19,19 @@ A simple yet powerful 3D game engine written in C++ with OpenGL. This engine is 
 - Customizable fixed GUI layout.
 - Add and manage items to enhance user experience.
 
+### Menu System
+- **Pause Menu**: Access by pressing ESC key
+- **Interactive Buttons**:
+  - Resume: Returns to gameplay
+  - Quit: Exits the application
+- **Visual Features**:
+  - Clean button layout with consistent spacing
+  - Text rendering using custom font system
+  - Smooth cursor interaction
+- **State Management**:
+  - Automatic camera position saving/restoration
+  - Cursor mode switching between gameplay and menu
+
 ## Getting Started
 
 ### Prerequisites
