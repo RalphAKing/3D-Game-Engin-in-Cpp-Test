@@ -728,7 +728,7 @@ int main() {
         std::cerr << "Failed to initialize GLEW" << std::endl;
         return -1;
     }
-    loadFont("font.png");
+    loadFont("assets/font.png");
     if (fontTexture == 0) {
         std::cerr << "Font texture failed to load" << std::endl;
         return -1;
