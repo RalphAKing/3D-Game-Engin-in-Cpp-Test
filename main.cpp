@@ -39,6 +39,7 @@ float collisionThreshold = 0.0f;
 bool menue = false;
 float savedCamX = 0.0f, savedCamY = 0.0f, savedCamZ = 0.0f;
 float savedCamYaw = 0.0f, savedCamPitch = 0.0f;
+bool wasMenuClosed = true;
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
@@ -170,6 +171,31 @@ float getTextWidth(const std::string& text, float scale) {
     return (width * scale);
 }
 
+std::string typingText(const std::string& text, float x, float y, float scale, GLuint fontTexture) {
+    static size_t charIndex = 0;
+    static float lastPrintTime = 0.0f;
+    float currentTime = glfwGetTime();
+
+    std::string output = text.substr(0, charIndex);
+    if (charIndex < text.length()) {
+        output += "_";
+    }
+
+    if (currentTime - lastPrintTime >= 0.2f && charIndex <= text.length()) {
+        charIndex++;
+        lastPrintTime = currentTime;
+    }
+    
+    if (charIndex > text.length()) {
+        charIndex = 0;
+    }
+
+    return output;
+}
+
+
+
+
 
 struct menuedata {
     std::string text;
@@ -294,6 +320,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
                 camYaw = savedCamYaw;
                 camPitch = savedCamPitch;
                 glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+                wasMenuClosed=true;
             }
         }
 
@@ -521,6 +548,7 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
                     camYaw = savedCamYaw;
                     camPitch = savedCamPitch;
                     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+                    wasMenuClosed = true;
                 }
             }
         }
@@ -636,8 +664,14 @@ public:
         glEnd();
     }
     static void drawMENU(GLFWwindow* window) {
-        
+        static int currentButton = 0;
+        static std::vector<size_t> charIndices;
         int width, height;
+        if (wasMenuClosed) {
+            currentButton = 0;
+            charIndices.clear();
+            wasMenuClosed = false;
+        }
         glfwGetWindowSize(window, &width, &height);
 
         glMatrixMode(GL_PROJECTION);
@@ -657,18 +691,43 @@ public:
         float totalHeight = numButtons * buttonHeight + (numButtons - 1) * buttonSpacing;
         float startY = (height - totalHeight) / 2.0f;
 
+        
+        if (charIndices.empty()) {
+            charIndices.resize(numButtons, 0);
+        }
+
         for (int i = 0; i < numButtons; ++i) {
             float buttonX = (width - buttonWidth) / 2.0f;
-            float buttonY = startY + i * (buttonHeight + buttonSpacing); 
+            float buttonY = startY + i * (buttonHeight + buttonSpacing);
             drawRectangle(buttonX, buttonY, buttonWidth, buttonHeight);
 
             float textwidth = getTextWidth(menueData[i].text, 55.0f);
             float textX = buttonX + (buttonWidth - textwidth) / 2.0f;  
-            float textY = buttonY + (buttonHeight + 55.0f) / 2.0f; 
-            std::string menuetext = menueData[i].text;
+            float textY = buttonY + (buttonHeight + 55.0f) / 2.0f;
 
-            renderText(menuetext, textX, textY, 55.0f, fontTexture); 
+            if (i < currentButton) {
+                renderText(menueData[i].text, textX, textY, 55.0f, fontTexture);
+            } else if (i == currentButton) {
+                std::string displayText = menueData[i].text.substr(0, charIndices[i]);
+                if (charIndices[i] < menueData[i].text.length()) {
+                    displayText += "_";
+                }
+                renderText(displayText, textX, textY, 55.0f, fontTexture);
+                
+                static float lastPrintTime = 0.0f;
+                float currentTime = glfwGetTime();
+                if (currentTime - lastPrintTime >= 0.2f) {
+                    charIndices[i]++;
+                    lastPrintTime = currentTime;
+                    if (charIndices[i] > menueData[i].text.length()) {
+                        currentButton++;
+                        charIndices[i] = 0;
+                    }
+                }
+            }
         }
+
+
         glMatrixMode(GL_PROJECTION);
         glPopMatrix();
         glMatrixMode(GL_MODELVIEW);
