@@ -202,8 +202,8 @@ struct menuedata {
 }; 
 
 menuedata menueData[] = {
-    {"Resume"},
-    {"Quit"}
+    {"Quit"},
+    {"Resume"}
 };
 
 struct Platform {
