@@ -153,6 +153,24 @@ void renderText(const std::string& text, float x, float y, float scale, GLuint f
     glDisable(GL_TEXTURE_2D);
 }
 
+float getTextWidth(const std::string& text, float scale) {
+    float width = 0.0f;
+    for (size_t i = 0; i < text.length(); i++) {
+        char c = text[i];
+        if (c == ' ') {
+            width += 0.6f;
+            continue;
+        }
+        if (i == 0 || i == text.length() - 1) {
+            width += 0.8f;
+        } else {
+            width += 0.6f;
+        }
+    }
+    return (width * scale);
+}
+
+
 struct menuedata {
     std::string text;
 }; 
@@ -643,8 +661,10 @@ public:
             float buttonX = (width - buttonWidth) / 2.0f;
             float buttonY = startY + i * (buttonHeight + buttonSpacing); 
             drawRectangle(buttonX, buttonY, buttonWidth, buttonHeight);
-            float textX = buttonX + (buttonWidth - 200.0f) / 2.0f;  
-            float textY = buttonY + (buttonHeight + 50.0f) / 2.0f; 
+
+            float textwidth = getTextWidth(menueData[i].text, 55.0f);
+            float textX = buttonX + (buttonWidth - textwidth) / 2.0f;  
+            float textY = buttonY + (buttonHeight + 55.0f) / 2.0f; 
             std::string menuetext = menueData[i].text;
 
             renderText(menuetext, textX, textY, 55.0f, fontTexture); 
