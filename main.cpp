@@ -217,6 +217,9 @@ std::vector<Platform> platforms = {
 void drawCube(float size) {
     float halfSize = size / 2.0f;
     glEnable(GL_TEXTURE_2D);
+    glEnable(GL_CULL_FACE);  
+    glCullFace(GL_BACK);    
+    glFrontFace(GL_CCW);    
     glBindTexture(GL_TEXTURE_2D, platformTexture);
     glColor3f(1.0f, 1.0f, 1.0f);
     glBegin(GL_QUADS);
@@ -245,6 +248,7 @@ void drawCube(float size) {
     glTexCoord2f(1.0f, 1.0f); glVertex3f(-halfSize, halfSize, halfSize);
     glTexCoord2f(0.0f, 1.0f); glVertex3f(-halfSize, halfSize, -halfSize);
     glEnd();
+    glDisable(GL_CULL_FACE);
     glDisable(GL_TEXTURE_2D);
 }
 
