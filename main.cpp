@@ -15,8 +15,8 @@ float playerY = 0.0f;
 
 float frameCount = 0;
 float lastFPSUpdate = 0.0f;
-int Vsync = 0; //if 0 then disabled if 1 then enabled
-bool FPScount = false; //turns on a fps count which is displayed in the top right of screen 
+int Vsync = 0;
+bool FPScount = false; 
 
 // Movement 
 bool isJumping = false;
