@@ -14,6 +14,7 @@ A simple yet powerful 3D game engine written in C++ with OpenGL. This engine is 
 - Create blocks and platforms of customizable sizes.
 - Define platform start heights for varied level designs.
 - Platforms are fully interactable, supporting collision and navigation.
+- Define platform textures location for unique visual effects and to have variation in maps.
 
 ### Graphical User Interface (GUI)
 - Customizable fixed GUI layout.
@@ -24,10 +25,13 @@ A simple yet powerful 3D game engine written in C++ with OpenGL. This engine is 
 - **Interactive Buttons**:
   - Resume: Returns to gameplay
   - Quit: Exits the application
+  - Toggle FPS:  Shows/hides FPS counter
+  - Toggle VSync:  Enables/disables VSync
 - **Visual Features**:
   - Clean button layout with consistent spacing
   - Text rendering using custom font system
   - Smooth cursor interaction
+  - Text typing affect on buttons text
 - **State Management**:
   - Automatic camera position saving/restoration
   - Cursor mode switching between gameplay and menu

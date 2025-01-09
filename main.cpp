@@ -194,9 +194,6 @@ std::vector<Platform> platforms = {
 void loadPlatformTextures() {
     for (auto& platform : platforms) {
         platform.textureID = loadTexture(platform.texturePath.c_str());
-        if (platform.textureID == 0) {
-            std::cerr << "Failed to load texture: " << platform.texturePath << std::endl;
-        }
     }
 }
 
