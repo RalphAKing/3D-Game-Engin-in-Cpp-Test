@@ -176,7 +176,7 @@ std::string typingText(const std::string& text, float x, float y, float scale, G
         output += "_";
     }
 
-    if (currentTime - lastPrintTime >= 0.2f && charIndex <= text.length()) {
+    if (currentTime - lastPrintTime >= 0.1f && charIndex <= text.length()) {
         charIndex++;
         lastPrintTime = currentTime;
     }
@@ -198,6 +198,8 @@ struct menuedata {
 
 menuedata menueData[] = {
     {"Quit"},
+    {"Toggle FPS"},
+    {"Toggle VSync"},
     {"Resume"}
 };
 
@@ -551,6 +553,11 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
                     camPitch = savedCamPitch;
                     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
                     wasMenuClosed = true;
+                } else if (menueData[i].text == "Toggle FPS") {
+                    FPScount = !FPScount;
+                } if (menueData[i].text == "Toggle VSync") {
+                    Vsync = !Vsync;  
+                    glfwSwapInterval(Vsync);  
                 }
             }
         }
@@ -687,7 +694,7 @@ public:
         glDisable(GL_BLEND);
 
         int numButtons = std::size(menueData);
-        float buttonWidth = 300.0f;
+        float buttonWidth = 400.0f;
         float buttonHeight = 100.0f;
         float buttonSpacing = 50.0f;
         float totalHeight = numButtons * buttonHeight + (numButtons - 1) * buttonSpacing;
