@@ -34,7 +34,7 @@ float moveSpeed = 0.1f;
 const float turnSpeed = 0.1f;
 double lastMouseX, lastMouseY;
 bool keys[1024] = {false};
-float collisionThreshold = 0.0f;
+float collisionThreshold = 0.5f;
 
 bool menue = false;
 float savedCamX = 0.0f, savedCamY = 0.0f, savedCamZ = 0.0f;
@@ -166,32 +166,6 @@ float getTextWidth(const std::string& text, float scale) {
     return (width * scale);
 }
 
-std::string typingText(const std::string& text, float x, float y, float scale, GLuint fontTexture) {
-    static size_t charIndex = 0;
-    static float lastPrintTime = 0.0f;
-    float currentTime = glfwGetTime();
-
-    std::string output = text.substr(0, charIndex);
-    if (charIndex < text.length()) {
-        output += "_";
-    }
-
-    if (currentTime - lastPrintTime >= 0.1f && charIndex <= text.length()) {
-        charIndex++;
-        lastPrintTime = currentTime;
-    }
-    
-    if (charIndex > text.length()) {
-        charIndex = 0;
-    }
-
-    return output;
-}
-
-
-
-
-
 struct menuedata {
     std::string text;
 }; 
@@ -267,8 +241,8 @@ void drawPlatforms() {
 float getPlatformHeight(float x, float z, float currentY) {
     float closestPlatformHeight = groundY;
     for (const auto& platform : platforms) {
-        bool isWithinXBounds = x >= platform.x - platform.width / 2 && x <= platform.x + platform.width / 2;
-        bool isWithinZBounds = z >= platform.z - platform.depth / 2 && z <= platform.z + platform.depth / 2;
+        bool isWithinXBounds = x >= platform.x - platform.width / 2 - collisionThreshold && x <= platform.x + platform.width / 2 + collisionThreshold;
+        bool isWithinZBounds = z >= platform.z - platform.depth / 2 - collisionThreshold && z <= platform.z + platform.depth / 2 + collisionThreshold;
 
         if (isWithinXBounds && isWithinZBounds) {
             if (platform.height + platform.heightdelta <= currentY) {
@@ -368,8 +342,8 @@ void updateMovement() {
     } else if ((!keys[GLFW_KEY_LEFT_CONTROL] && !keys[GLFW_KEY_RIGHT_CONTROL]) && crouch ) {
         bool canUncrouch = true;
         for (const auto& platform : platforms) {
-            if (camX >= platform.x - platform.width / 2 && camX <= platform.x + platform.width / 2 &&
-                camZ >= platform.z - platform.depth / 2 && camZ <= platform.z + platform.depth / 2 &&
+            if (camX >= platform.x - platform.width + collisionThreshold / 2 && camX <= platform.x + platform.width + collisionThreshold / 2 &&
+                camZ >= platform.z - platform.depth + collisionThreshold / 2 && camZ <= platform.z + platform.depth + collisionThreshold / 2 &&
                 camY + 1.0f >= platform.heightdelta) {
                 canUncrouch = false;
                 if (playerY + 0.1 >= platform.heightdelta) {
@@ -725,7 +699,7 @@ public:
                 
                 static float lastPrintTime = 0.0f;
                 float currentTime = glfwGetTime();
-                if (currentTime - lastPrintTime >= 0.2f) {
+                if (currentTime - lastPrintTime >= 0.15f) {
                     charIndices[i]++;
                     lastPrintTime = currentTime;
                     if (charIndices[i] > menueData[i].text.length()) {
