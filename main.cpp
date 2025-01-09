@@ -181,22 +181,34 @@ struct Platform {
     float x, z;     
     float width, depth; 
     float height;  
-    float heightdelta;  
+    float heightdelta;
+    std::string texturePath;
+    GLuint textureID;
 };
 
-// platforms
 std::vector<Platform> platforms = {
-    {2.0f, 2.0f, 2.0f, 2.0f, 1.0f, 1.5f},
-    {-3.0f, -3.0f, 2.0f, 2.0f, 2.0f, 0.0f}
+    {0.0f, 0.0f, 5.0f, 5.0f, 0.5f, 0.0f, "assets/platform.jpeg", 0},
+    {0.0f, 0.0f, 1.5f, 1.5f, 0.5f, 2.0f, "assets/platform.jpeg", 0}
 };
 
-void drawCube(float size) {
+void loadPlatformTextures() {
+    for (auto& platform : platforms) {
+        platform.textureID = loadTexture(platform.texturePath.c_str());
+        if (platform.textureID == 0) {
+            std::cerr << "Failed to load texture: " << platform.texturePath << std::endl;
+        }
+    }
+}
+
+
+
+void drawCube(float size, GLuint textureID) {
     float halfSize = size / 2.0f;
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_CULL_FACE);  
     glCullFace(GL_BACK);    
     glFrontFace(GL_CCW);    
-    glBindTexture(GL_TEXTURE_2D, platformTexture);
+    glBindTexture(GL_TEXTURE_2D, textureID);
     glColor3f(1.0f, 1.0f, 1.0f);
     glBegin(GL_QUADS);
     glTexCoord2f(0.0f, 0.0f); glVertex3f(-halfSize, -halfSize, halfSize);
@@ -233,7 +245,7 @@ void drawPlatforms() {
         glPushMatrix();
         glTranslatef(platform.x, (platform.height / 2.0f) + platform.heightdelta, platform.z);
         glScalef(platform.width, platform.height, platform.depth);
-        drawCube(1.0f);
+        drawCube(1.0f, platform.textureID);
         glPopMatrix();
     }
 }
@@ -341,14 +353,13 @@ void updateMovement() {
         }
     } else if ((!keys[GLFW_KEY_LEFT_CONTROL] && !keys[GLFW_KEY_RIGHT_CONTROL]) && crouch ) {
         bool canUncrouch = true;
+        float currentPlatformHeight = getPlatformHeight(camX, camZ, playerY);
+        
         for (const auto& platform : platforms) {
-            if (camX >= platform.x - platform.width + collisionThreshold / 2 && camX <= platform.x + platform.width + collisionThreshold / 2 &&
-                camZ >= platform.z - platform.depth + collisionThreshold / 2 && camZ <= platform.z + platform.depth + collisionThreshold / 2 &&
-                camY + 1.0f >= platform.heightdelta) {
+            if (camX >= platform.x - platform.width / 2 && camX <= platform.x + platform.width / 2 &&
+                camZ >= platform.z - platform.depth / 2 && camZ <= platform.z + platform.depth / 2 &&
+                camY + 1.0f > platform.height + platform.heightdelta) {
                 canUncrouch = false;
-                if (playerY + 0.1 >= platform.heightdelta) {
-                    canUncrouch = true;
-                }
                 break;
             }
         }
@@ -796,11 +807,7 @@ int main() {
         return -1;
     }
 
-    platformTexture = loadTexture("assets/platform.jpeg");
-    if (platformTexture == 0) {
-        std::cerr << "Platform texture failed to load" << std::endl;
-        return -1;
-    }
+    loadPlatformTextures();
 
 
     glfwSwapInterval(Vsync);
