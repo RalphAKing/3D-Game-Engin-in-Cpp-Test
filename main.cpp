@@ -194,8 +194,8 @@ struct Platform {
 };
 
 std::vector<Platform> platforms = {
-    {0.0f, 0.0f, 5.0f, 5.0f, 0.5f, 0.0f, "assets/platform.jpeg", 0},
-    {0.0f, 0.0f, 1.5f, 1.5f, 0.5f, 2.0f, "assets/platform.jpeg", 0}
+    {0.0f, 0.0f, 5.0f, 5.0f, 0.5f, 0.0f, "assets/textures/platform.jpeg", 0},
+    {0.0f, 0.0f, 1.5f, 1.5f, 0.5f, 2.0f, "assets/textures/platform.jpeg", 0}
 };
 
 void loadPlatformTextures() {
@@ -819,7 +819,7 @@ int main() {
         std::cerr << "Failed to initialize GLEW" << std::endl;
         return -1;
     }
-    loadFont("assets/font.png");
+    loadFont("assets/fonts/font.png");
     if (fontTexture == 0) {
         std::cerr << "Font texture failed to load" << std::endl;
         return -1;
