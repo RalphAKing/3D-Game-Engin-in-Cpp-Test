@@ -41,6 +41,7 @@ bool menue = false;
 float savedCamX = 0.0f, savedCamY = 0.0f, savedCamZ = 0.0f;
 float savedCamYaw = 0.0f, savedCamPitch = 0.0f;
 bool wasMenuClosed = true;
+bool wireframs = false;
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
@@ -51,6 +52,7 @@ void drawGrids(int lines, float spacing);
 void drawCube(float size, GLuint textureID);
 void updateMovement();
 void drawPlatforms();
+void drawPlatformWireframes();
 void display();
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void loadFont(const char* filePath);
@@ -197,6 +199,7 @@ menuedata menueData[] = {
     {"Quit"},
     {"Toggle FPS"},
     {"Toggle VSync"},
+    {"Wireframs"},
     {"Fullscreen"},
     {"Resume"}
 };
@@ -273,6 +276,87 @@ void drawPlatforms() {
         drawCube(1.0f, platform.textureID);
         glPopMatrix();
     }
+}
+
+void drawPlatformWireframes() {
+    glDisable(GL_TEXTURE_2D);
+    glColor3f(1.0f, 0.0f, 0.0f); 
+    glLineWidth(2.0f);  
+
+    for (const auto& platform : platforms) {
+        float halfWidth = (platform.width / 2.0f) + collisionThreshold;
+        float halfDepth = (platform.depth / 2.0f) + collisionThreshold;
+        float halfHeight = platform.height / 2.0f;  
+
+        glPushMatrix();
+        glTranslatef(platform.x, platform.heightdelta + halfHeight, platform.z);
+
+        glBegin(GL_LINE_LOOP);
+        glVertex3f(-halfWidth, -halfHeight, -halfDepth);
+        glVertex3f(halfWidth, -halfHeight, -halfDepth);
+        glVertex3f(halfWidth, -halfHeight, halfDepth);
+        glVertex3f(-halfWidth, -halfHeight, halfDepth);
+        glEnd();
+
+        glBegin(GL_LINE_LOOP);
+        glVertex3f(-halfWidth, halfHeight, -halfDepth);
+        glVertex3f(halfWidth, halfHeight, -halfDepth);
+        glVertex3f(halfWidth, halfHeight, halfDepth);
+        glVertex3f(-halfWidth, halfHeight, halfDepth);
+        glEnd();
+
+        glBegin(GL_LINES);
+        glVertex3f(-halfWidth, -halfHeight, -halfDepth);
+        glVertex3f(-halfWidth, halfHeight, -halfDepth);
+        glVertex3f(halfWidth, -halfHeight, -halfDepth);
+        glVertex3f(halfWidth, halfHeight, -halfDepth);
+        glVertex3f(halfWidth, -halfHeight, halfDepth);
+        glVertex3f(halfWidth, halfHeight, halfDepth);
+        glVertex3f(-halfWidth, -halfHeight, halfDepth);
+        glVertex3f(-halfWidth, halfHeight, halfDepth);
+        glEnd();
+
+        glPopMatrix();
+    }
+
+    glColor3f(0.0f, 0.5f, 0.5f); 
+    for (const auto& platform : platforms) {
+        float halfWidth = (platform.width / 2.0f)+0.001f;
+        float halfDepth = (platform.depth / 2.0f)+0.001f;
+        float halfHeight = (platform.height / 2.0f)+0.001f;  
+
+        glPushMatrix();
+        glTranslatef(platform.x, platform.heightdelta + halfHeight, platform.z);
+
+        glBegin(GL_LINE_LOOP);
+        glVertex3f(-halfWidth, -halfHeight, -halfDepth);
+        glVertex3f(halfWidth, -halfHeight, -halfDepth);
+        glVertex3f(halfWidth, -halfHeight, halfDepth);
+        glVertex3f(-halfWidth, -halfHeight, halfDepth);
+        glEnd();
+
+        glBegin(GL_LINE_LOOP);
+        glVertex3f(-halfWidth, halfHeight, -halfDepth);
+        glVertex3f(halfWidth, halfHeight, -halfDepth);
+        glVertex3f(halfWidth, halfHeight, halfDepth);
+        glVertex3f(-halfWidth, halfHeight, halfDepth);
+        glEnd();
+
+        glBegin(GL_LINES);
+        glVertex3f(-halfWidth, -halfHeight, -halfDepth);
+        glVertex3f(-halfWidth, halfHeight, -halfDepth);
+        glVertex3f(halfWidth, -halfHeight, -halfDepth);
+        glVertex3f(halfWidth, halfHeight, -halfDepth);
+        glVertex3f(halfWidth, -halfHeight, halfDepth);
+        glVertex3f(halfWidth, halfHeight, halfDepth);
+        glVertex3f(-halfWidth, -halfHeight, halfDepth);
+        glVertex3f(-halfWidth, halfHeight, halfDepth);
+        glEnd();
+
+        glPopMatrix();
+    }
+
+    glEnable(GL_TEXTURE_2D);
 }
 
 float getPlatformHeight(float x, float z, float currentY) {
@@ -577,6 +661,8 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
                     glfwSwapInterval(Vsync);  
                 } else if (menueData[i].text == "Fullscreen") {
                     toggleFullscreen(window);
+                } else if (menueData[i].text == "Wireframs") {
+                    wireframs = !wireframs;
                 }
             }
         }
@@ -787,7 +873,9 @@ void display(GLFWwindow* window) {
         glRotatef(camPitch, 1.0f, 0.0f, 0.0f);
         glRotatef(camYaw, 0.0f, 1.0f, 0.0f);
         glTranslatef(-camX, -camY, -camZ);
-
+        if (wireframs) {
+            drawPlatformWireframes();
+        }
         drawGrids(GRID_WIDTH, 1.0f);
         drawPlatforms();
         GUI::drawHUD(); 

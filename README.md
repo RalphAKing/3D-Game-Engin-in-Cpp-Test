@@ -32,6 +32,7 @@ A simple yet powerful 3D game engine written in C++ with OpenGL. This engine is 
   - Toggle FPS:  Shows/hides FPS counter
   - Toggle VSync:  Enables/disables VSync
   - Toggle Fullscreen:  Enables/disables fullscreen mode
+  - Wireframes: Enables/disables wireframe mode for debugging
 - **Visual Features**:
   - Clean button layout with consistent spacing
   - Text rendering using custom font system
