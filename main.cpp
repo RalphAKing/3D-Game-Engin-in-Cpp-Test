@@ -17,6 +17,7 @@ float frameCount = 0;
 float lastFPSUpdate = 0.0f;
 int Vsync = 0;
 bool FPScount = false; 
+bool isFullscreen = true;
 
 // Movement 
 bool isJumping = false;
@@ -173,6 +174,21 @@ float getTextWidth(const std::string& text, float scale) {
     return (width * scale);
 }
 
+void toggleFullscreen(GLFWwindow* window) {
+    isFullscreen = !isFullscreen;
+    if (isFullscreen) {
+        const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+        glfwSetWindowMonitor(window, glfwGetPrimaryMonitor(), 0, 0, mode->width, mode->height, mode->refreshRate);
+    } else {
+        int width, height;
+        glfwGetWindowSize(window, &width, &height);
+        height -= 100;
+        GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+        const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+        glfwSetWindowMonitor(window, nullptr, (mode->width - width) / 2, (mode->height - height) / 2, width, height, 0);
+    }
+}
+
 struct menuedata {
     std::string text;
 }; 
@@ -181,6 +197,7 @@ menuedata menueData[] = {
     {"Quit"},
     {"Toggle FPS"},
     {"Toggle VSync"},
+    {"Fullscreen"},
     {"Resume"}
 };
 
@@ -558,6 +575,8 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
                 } else if (menueData[i].text == "Toggle VSync") {
                     Vsync = !Vsync;  
                     glfwSwapInterval(Vsync);  
+                } else if (menueData[i].text == "Fullscreen") {
+                    toggleFullscreen(window);
                 }
             }
         }
@@ -725,7 +744,7 @@ public:
                 
                 static float lastPrintTime = 0.0f;
                 float currentTime = glfwGetTime();
-                if (currentTime - lastPrintTime >= 0.1f) {
+                if (currentTime - lastPrintTime >= 0.03f) {
                     charIndices[i]++;
                     lastPrintTime = currentTime;
                     if (charIndices[i] > menueData[i].text.length()) {
