@@ -194,8 +194,12 @@ struct Platform {
 };
 
 std::vector<Platform> platforms = {
-    {0.0f, 0.0f, 5.0f, 5.0f, 0.5f, 0.0f, "assets/textures/platform.jpeg", 0},
-    {0.0f, 0.0f, 1.5f, 1.5f, 0.5f, 2.0f, "assets/textures/platform.jpeg", 0}
+    {0.0f, 0.0f, 10.0f, 10.0f, 0.5f, 0.0f, "assets/textures/platform.jpeg", 0},
+    {0.0f, 0.0f, 1.5f, 1.5f, 0.5f, 2.0f, "assets/textures/platform.jpeg", 0},
+    {0.0f, 0.0f, 1.5f, 1.5f, 0.5f, 4.0f, "assets/textures/platform.jpeg", 0},
+    {5.0f, 5.0f, 1.5f, 1.5f, 0.5f, 2.0f, "assets/textures/platform.jpeg", 0}
+
+
 };
 
 void loadPlatformTextures() {
@@ -357,12 +361,11 @@ void updateMovement() {
         }
     } else if ((!keys[GLFW_KEY_LEFT_CONTROL] && !keys[GLFW_KEY_RIGHT_CONTROL]) && crouch ) {
         bool canUncrouch = true;
-        float currentPlatformHeight = getPlatformHeight(camX, camZ, playerY);
         
         for (const auto& platform : platforms) {
-            if (camX >= platform.x - platform.width / 2 && camX <= platform.x + platform.width / 2 &&
-                camZ >= platform.z - platform.depth / 2 && camZ <= platform.z + platform.depth / 2 &&
-                camY + 1.0f > platform.height + platform.heightdelta) {
+            if (camX >= platform.x - platform.width / 2 - collisionThreshold && camX <= platform.x + platform.width / 2 + collisionThreshold &&
+                camZ >= platform.z - platform.depth / 2 - collisionThreshold && camZ <= platform.z + platform.depth / 2 + collisionThreshold &&
+                camY + 1.0f > platform.heightdelta-(platform.height/2) && platform.heightdelta-(platform.height/2) > 0.0f) {
                 canUncrouch = false;
                 break;
             }
