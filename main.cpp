@@ -35,6 +35,7 @@ float moveSpeed = 0.1f;
 const float turnSpeed = 0.1f;
 double lastMouseX, lastMouseY;
 bool keys[1024] = {false};
+bool nojump = false;
 float collisionThreshold = 0.5f;
 
 bool menue = false;
@@ -423,7 +424,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
             }
         }
 
-        if (key == GLFW_KEY_SPACE && !isJumping && playerY == groundY && !crouch && stamina >= 5) {
+        if (key == GLFW_KEY_SPACE && !isJumping && playerY == groundY && !crouch && stamina >= 5 && !nojump) {
 
             isJumping = true;
             velocityY = jumpSpeed;
@@ -541,11 +542,15 @@ void updateMovement() {
         moveX = 0.0f;
         moveZ = 0.0f;
         velocityY=0.0f;
+        nojump = true;
     } else if (checkplatformHeight - playerY <= 0.5f && checkplatformHeight - playerY > 0.0f) {
         playerY = checkplatformHeight;
         camX += moveX * moveSpeed;
         camZ += moveZ * moveSpeed;
-    } 
+        nojump = false;
+    } else {
+        nojump = false;
+    }
 
     if (!(checkplatformHeight - playerY <= 0.5f && checkplatformHeight - playerY > 0.0f)) {
         camX += moveX * moveSpeed;
@@ -587,7 +592,7 @@ void updateMovement() {
                 camY = playerY + 2.2f;
             }
 
-            if (keys[GLFW_KEY_SPACE]&& !crouch && stamina >= 5) {
+            if (keys[GLFW_KEY_SPACE]&& !crouch && stamina >= 5 && !nojump) {
                 isJumping = true;
                 velocityY = jumpSpeed; 
                 stamina -= 5;
