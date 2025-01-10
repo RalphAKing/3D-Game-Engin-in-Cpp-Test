@@ -427,7 +427,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 
             isJumping = true;
             velocityY = jumpSpeed;
-            stamina -= 3;
+            stamina -= 5;
         }
     } else if (action == GLFW_RELEASE) {
         keys[key] = false;
@@ -590,6 +590,7 @@ void updateMovement() {
             if (keys[GLFW_KEY_SPACE]&& !crouch && stamina >= 5) {
                 isJumping = true;
                 velocityY = jumpSpeed; 
+                stamina -= 5;
             }
 
         }
