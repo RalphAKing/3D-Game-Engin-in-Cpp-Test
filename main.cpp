@@ -421,20 +421,29 @@ void updateMovement() {
         stamina += 0.2f;
     }
 
-
     float nextCamX = camX + moveX * moveSpeed;
     float nextCamZ = camZ + moveZ * moveSpeed;
+    float platformHeight;
 
-    if (isNearPlatform(nextCamX, nextCamZ, playerY, camY)) {
+    float checkplatformHeight = getPlatformHeight(nextCamX, nextCamZ, playerY+0.5f);
+    if (isNearPlatform(nextCamX, nextCamZ, playerY, camY) && !(checkplatformHeight - playerY <= 0.5f && checkplatformHeight - playerY > 0.0f)) {
         moveX = 0.0f;
         moveZ = 0.0f;
         velocityY=0.0f;
+        camX += moveX * moveSpeed;
+        camZ += moveZ * moveSpeed;
+        platformHeight = getPlatformHeight(camX, camZ, playerY);
+    } else if (checkplatformHeight - playerY <= 0.5f && checkplatformHeight - playerY > 0.0f) {
+        playerY = checkplatformHeight;
+        camX += moveX * moveSpeed;
+        camZ += moveZ * moveSpeed;
+    } else {
+        platformHeight = getPlatformHeight(camX, camZ, playerY);
+        camX += moveX * moveSpeed;
+        camZ += moveZ * moveSpeed;
     }
-    camX += moveX * moveSpeed;
-    camZ += moveZ * moveSpeed;
 
-
-    float platformHeight = getPlatformHeight(camX, camZ, playerY);
+    
 
 
     if (isJumping) {

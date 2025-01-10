@@ -15,6 +15,7 @@ A simple yet powerful 3D game engine written in C++ with OpenGL. This engine is 
 - Define platform start heights for varied level designs.
 - Platforms are fully interactable, supporting collision and navigation.
 - Define platform textures location for unique visual effects and to have variation in maps.
+- Player can walk up platforms that are 0.5f or less in height without jumping.
 
 ### Graphical User Interface (GUI)
 - Customizable fixed GUI layout.
