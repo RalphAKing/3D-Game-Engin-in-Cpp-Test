@@ -430,17 +430,16 @@ void updateMovement() {
         moveX = 0.0f;
         moveZ = 0.0f;
         velocityY=0.0f;
-        camX += moveX * moveSpeed;
-        camZ += moveZ * moveSpeed;
-        platformHeight = getPlatformHeight(camX, camZ, playerY);
     } else if (checkplatformHeight - playerY <= 0.5f && checkplatformHeight - playerY > 0.0f) {
         playerY = checkplatformHeight;
         camX += moveX * moveSpeed;
         camZ += moveZ * moveSpeed;
-    } else {
-        platformHeight = getPlatformHeight(camX, camZ, playerY);
+    } 
+
+    if (!(checkplatformHeight - playerY <= 0.5f && checkplatformHeight - playerY > 0.0f)) {
         camX += moveX * moveSpeed;
         camZ += moveZ * moveSpeed;
+        platformHeight = getPlatformHeight(camX, camZ, playerY);
     }
 
     
