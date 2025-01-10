@@ -43,11 +43,18 @@ bool wasMenuClosed = true;
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
+void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void drawGrid(int lines, float spacing, float r, float g, float b);
 void drawWalls(int lines, float spacing);
 void drawGrids(int lines, float spacing);
+void drawCube(float size, GLuint textureID);
+void updateMovement();
+void drawPlatforms();
 void display();
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void loadFont(const char* filePath);
+void renderText(const std::string& text, float x, float y, float scale, GLuint fontTexture);
+void loadPlatformTextures();
 
 GLuint fontTexture;
 int fontWidth, fontHeight;
@@ -545,7 +552,7 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
                     wasMenuClosed = true;
                 } else if (menueData[i].text == "Toggle FPS") {
                     FPScount = !FPScount;
-                } if (menueData[i].text == "Toggle VSync") {
+                } else if (menueData[i].text == "Toggle VSync") {
                     Vsync = !Vsync;  
                     glfwSwapInterval(Vsync);  
                 }
@@ -792,11 +799,17 @@ int main() {
         std::cerr << "Failed to initialize GLFW" << std::endl;
         return -1;
     }
+    GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+    if (!primaryMonitor) {
+        glfwTerminate();
+        return -1;
+    }
 
-    GLFWwindow* window = glfwCreateWindow(1920, 1080, "3D Grid Engine", NULL, NULL);
+    const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
+
+    GLFWwindow* window = glfwCreateWindow(mode->width, mode->height, "Fullscreen Window", primaryMonitor, NULL);
     if (!window) {
         glfwTerminate();
-        std::cerr << "Failed to create GLFW window" << std::endl;
         return -1;
     }
 
@@ -814,7 +827,7 @@ int main() {
 
     loadPlatformTextures();
 
-
+    
     glfwSwapInterval(Vsync);
     glfwSetKeyCallback(window, keyCallback);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
