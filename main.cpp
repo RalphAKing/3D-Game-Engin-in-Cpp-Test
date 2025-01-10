@@ -707,7 +707,7 @@ public:
                 
                 static float lastPrintTime = 0.0f;
                 float currentTime = glfwGetTime();
-                if (currentTime - lastPrintTime >= 0.15f) {
+                if (currentTime - lastPrintTime >= 0.1f) {
                     charIndices[i]++;
                     lastPrintTime = currentTime;
                     if (charIndices[i] > menueData[i].text.length()) {
