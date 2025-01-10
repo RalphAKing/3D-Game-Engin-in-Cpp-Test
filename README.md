@@ -2,6 +2,8 @@
 
 A simple yet powerful 3D game engine written in C++ with OpenGL. This engine is designed to provide essential features for game development, focusing on player movement, platform interactions, and a customizable GUI.
 
+## Know Bugs
+- 
 ## Features
 
 ### Player Movement
@@ -9,6 +11,7 @@ A simple yet powerful 3D game engine written in C++ with OpenGL. This engine is 
 - **Advanced Mechanics**:
   - **Stamina System**: Limits sprinting and jumping.
   - **Crouch Mechanics**: Includes collision detection to prevent uncrouching beneath objects.
+  - **Auto Step**: Player can automaticaly step up small platforms of 0.5f or less in height.
 
 ### Block and Platform System
 - Create blocks and platforms of customizable sizes.
@@ -28,6 +31,7 @@ A simple yet powerful 3D game engine written in C++ with OpenGL. This engine is 
   - Quit: Exits the application
   - Toggle FPS:  Shows/hides FPS counter
   - Toggle VSync:  Enables/disables VSync
+  - Toggle Fullscreen:  Enables/disables fullscreen mode
 - **Visual Features**:
   - Clean button layout with consistent spacing
   - Text rendering using custom font system
@@ -71,6 +75,7 @@ Run the compiled executable to start the game engine:
 ### Core Movement Mechanics
 - Comprehensive player movement system with jumping, sprinting, crouching, and stamina control.
 - Collision detection for platforms and surrounding objects.
+- Auto step up mechanic for platforms under 0.5f in height.
 
 ### Platform Interaction
 - Ability to create and manipulate platforms with adjustable height and size.
