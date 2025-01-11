@@ -1,6 +1,6 @@
 # 3D Game Engine (in development)
 
-A simple yet powerful 3D game engine written in C++ with OpenGL. This engine is designed to provide essential features for game development, focusing on player movement, platform interactions, and a customizable GUI.
+A cutting-edge 3D game engine crafted in C++ and powered by OpenGL. This robust framework offers a comprehensive suite of tools for game developers, emphasizing immersive player interactions, dynamic platform mechanics, and a highly customizable GUI system. Whether you're a seasoned developer or an aspiring game creator, this engine provides the essential building blocks for bringing your 3D game visions to life.
 
 ## Know Bugs
 - 
