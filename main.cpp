@@ -8,6 +8,8 @@
 
 const int GRID_WIDTH = 10;
 const int GRID_HEIGHT = 10;
+GLuint gridVBO, gridVAO;
+std::vector<float> gridVertices;
 
 float camX = 0.0f, camY = 2.2f, camZ = 5.0f; 
 float camYaw = 0.0f, camPitch = 0.0f;
@@ -192,6 +194,23 @@ void toggleFullscreen(GLFWwindow* window) {
     }
 }
 
+struct Frustum {
+    float nearD, farD, aspect, fov;
+    float nearH, nearW, farH, farW;
+    
+    void update(float fovDegrees, float aspectRatio, float nearDist, float farDist) {
+        fov = fovDegrees * 3.14159f / 180.0f;
+        nearD = nearDist;
+        farD = farDist;
+        aspect = aspectRatio;
+        
+        nearH = 2 * tan(fov / 2) * nearD;
+        nearW = nearH * aspect;
+        farH = 2 * tan(fov / 2) * farD;
+        farW = farH * aspect;
+    }
+};
+
 struct menuedata {
     std::string text;
 }; 
@@ -223,12 +242,40 @@ std::vector<Platform> platforms = {
 
 };
 
+bool isInFrustum(const Platform& platform, const Frustum& frustum) {
+    float radYaw = camYaw * 3.14159f / 180.0f;
+  
+    float corners[4][2] = {
+        {platform.x - camX, platform.z - camZ},  
+        {platform.x + platform.width - camX, platform.z - camZ},  
+        {platform.x - camX, platform.z + platform.depth - camZ},  
+        {platform.x + platform.width - camX, platform.z + platform.depth - camZ}  
+    };
+    
+
+    for(int i = 0; i < 4; i++) {
+        float viewX = corners[i][0] * cos(radYaw) + corners[i][1] * sin(radYaw);
+        float viewZ = -corners[i][0] * sin(radYaw) + corners[i][1] * cos(radYaw);
+        
+        if(viewZ > 0) { 
+            float screenX = viewX / viewZ;
+            if(abs(screenX) < tan(frustum.fov / 2)) {
+                return false; 
+            }
+        }
+    }
+    
+    return true;
+}
+
+
+
+
 void loadPlatformTextures() {
     for (auto& platform : platforms) {
         platform.textureID = loadTexture(platform.texturePath.c_str());
     }
 }
-
 
 
 void drawCube(float size, GLuint textureID) {
@@ -270,7 +317,21 @@ void drawCube(float size, GLuint textureID) {
 }
 
 void drawPlatforms() {
+    static Frustum frustum;
+    int width, height;
+    glfwGetWindowSize(glfwGetCurrentContext(), &width, &height);
+    frustum.update(45.0f, (float)width/height, 0.1f, 100.0f);
+
+    std::cout << "Camera Position: " << camX << ", " << camY << ", " << camZ << std::endl;
+    
     for (const auto& platform : platforms) {
+        bool visible = isInFrustum(platform, frustum);
+        std::cout << "Platform at (" << platform.x << "," << platform.z << ") visible: " << visible << std::endl;
+        
+        if (!visible) {
+            continue;
+        }
+        
         glPushMatrix();
         glTranslatef(platform.x, (platform.height / 2.0f) + platform.heightdelta, platform.z);
         glScalef(platform.width, platform.height, platform.depth);
@@ -278,6 +339,8 @@ void drawPlatforms() {
         glPopMatrix();
     }
 }
+
+
 
 void drawPlatformWireframes() {
     glDisable(GL_TEXTURE_2D);
