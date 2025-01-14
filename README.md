@@ -3,7 +3,7 @@
 A cutting-edge 3D game engine crafted in C++ and powered by OpenGL. This robust framework offers a comprehensive suite of tools for game developers, emphasizing immersive player interactions, dynamic platform mechanics, and a highly customizable GUI system. Whether you're a seasoned developer or an aspiring game creator, this engine provides the essential building blocks for bringing your 3D game visions to life.
 
 ## Know Bugs
-- frustrum not rendering object when there corner is out of fov
+- crouching when on platforms that are floating above another cannot be uncreouched 
 ## Features
 
 ### Player Movement

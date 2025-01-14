@@ -241,32 +241,41 @@ std::vector<Platform> platforms = {
 
 
 };
-
 bool isInFrustum(const Platform& platform, const Frustum& frustum) {
     float radYaw = camYaw * 3.14159f / 180.0f;
-  
-    float corners[4][2] = {
-        {platform.x - camX, platform.z - camZ},  
-        {platform.x + platform.width - camX, platform.z - camZ},  
-        {platform.x - camX, platform.z + platform.depth - camZ},  
-        {platform.x + platform.width - camX, platform.z + platform.depth - camZ}  
-    };
+    float screenEdgeAngle = frustum.fov / 2;
+    float bufferAngle = 10.0f * (M_PI/180.0f); 
     
+    float leftEdge = radYaw - (screenEdgeAngle + bufferAngle);
+    float rightEdge = radYaw + (screenEdgeAngle + bufferAngle);
+
+    float corners[4][2] = {
+        {platform.x - platform.width/2, platform.z - platform.depth/2},
+        {platform.x + platform.width/2, platform.z - platform.depth/2},
+        {platform.x - platform.width/2, platform.z + platform.depth/2},
+        {platform.x + platform.width/2, platform.z + platform.depth/2}
+    };
+
+    float minAngle = M_PI;
+    float maxAngle = -M_PI;
 
     for(int i = 0; i < 4; i++) {
-        float viewX = corners[i][0] * cos(radYaw) + corners[i][1] * sin(radYaw);
-        float viewZ = -corners[i][0] * sin(radYaw) + corners[i][1] * cos(radYaw);
+        float dx = corners[i][0] - camX;
+        float dz = corners[i][1] - camZ;
+        float angle = atan2(dx, -dz);
+        float relativeAngle = angle - radYaw;
         
-        if(viewZ > 0) { 
-            float screenX = viewX / viewZ;
-            if(abs(screenX) < tan(frustum.fov / 2)) {
-                return false; 
-            }
-        }
+        while(relativeAngle > M_PI) relativeAngle -= 2 * M_PI;
+        while(relativeAngle < -M_PI) relativeAngle += 2 * M_PI;
+
+        minAngle = std::min(minAngle, relativeAngle);
+        maxAngle = std::max(maxAngle, relativeAngle);
     }
-    
-    return true;
+
+
+    return (maxAngle < -(screenEdgeAngle + bufferAngle) || minAngle > (screenEdgeAngle + bufferAngle));
 }
+
 
 
 
@@ -322,13 +331,11 @@ void drawPlatforms() {
     glfwGetWindowSize(glfwGetCurrentContext(), &width, &height);
     frustum.update(45.0f, (float)width/height, 0.1f, 100.0f);
 
-    std::cout << "Camera Position: " << camX << ", " << camY << ", " << camZ << std::endl;
-    
+
     for (const auto& platform : platforms) {
         bool visible = isInFrustum(platform, frustum);
-        std::cout << "Platform at (" << platform.x << "," << platform.z << ") visible: " << visible << std::endl;
-        
-        if (!visible) {
+          
+        if (visible) {
             continue;
         }
         
