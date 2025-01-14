@@ -533,11 +533,25 @@ void updateMovement() {
         }
     } else if ((!keys[GLFW_KEY_LEFT_CONTROL] && !keys[GLFW_KEY_RIGHT_CONTROL]) && crouch ) {
         bool canUncrouch = true;
-        
+        float highestPlatformHeight;
+        float curentplatform;
+
+        for (const auto& platform : platforms) {
+            bool isWithinXBounds = camX >= platform.x - platform.width / 2 - collisionThreshold && camX <= platform.x + platform.width / 2 + collisionThreshold;
+            bool isWithinZBounds = camZ >= platform.z - platform.depth / 2 - collisionThreshold && camZ <= platform.z + platform.depth / 2 + collisionThreshold;
+
+            if (isWithinXBounds && isWithinZBounds) {
+                curentplatform = platform.height + platform.heightdelta;
+                if (curentplatform >= highestPlatformHeight) {
+                    highestPlatformHeight = curentplatform;
+                }
+            }
+        }
+
         for (const auto& platform : platforms) {
             if (camX >= platform.x - platform.width / 2 - collisionThreshold && camX <= platform.x + platform.width / 2 + collisionThreshold &&
                 camZ >= platform.z - platform.depth / 2 - collisionThreshold && camZ <= platform.z + platform.depth / 2 + collisionThreshold &&
-                camY + 1.0f > platform.heightdelta-(platform.height/2) && platform.heightdelta-(platform.height/2) > 0.0f) {
+                camY + 1.0f > platform.heightdelta-(platform.height/2) && platform.heightdelta-(platform.height/2) > 0.0f && !(playerY >= highestPlatformHeight)) {
                 canUncrouch = false;
                 break;
             }
