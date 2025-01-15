@@ -20,9 +20,8 @@ float playerY = 0.0f;
 
 float frameCount = 0;
 float lastFPSUpdate = 0.0f;
-int Vsync = 0;
-bool FPScount = false; 
-bool isFullscreen = true;
+float savedCamX = 0.0f, savedCamY = 0.0f, savedCamZ = 0.0f;
+float savedCamYaw = 0.0f, savedCamPitch = 0.0f;
 
 // Movement 
 bool isJumping = false;
@@ -44,10 +43,11 @@ bool nojump = false;
 float collisionThreshold = 0.5f;
 
 bool menue = false;
-float savedCamX = 0.0f, savedCamY = 0.0f, savedCamZ = 0.0f;
-float savedCamYaw = 0.0f, savedCamPitch = 0.0f;
 bool wasMenuClosed = true;
 bool wireframs = false;
+int Vsync = 0;
+bool FPScount = false; 
+bool isFullscreen = true;
 std::string lastmap;
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
