@@ -241,7 +241,7 @@ std::vector<Platform> platforms = {
 bool isInFrustum(const Platform& platform, const Frustum& frustum) {
     float radYaw = camYaw * 3.14159f / 180.0f;
     float screenEdgeAngle = frustum.fov / 2;
-    float bufferAngle = 10.0f * (M_PI/180.0f); 
+    float bufferAngle = 20.0f * (M_PI/180.0f); 
     
     float leftEdge = radYaw - (screenEdgeAngle + bufferAngle);
     float rightEdge = radYaw + (screenEdgeAngle + bufferAngle);
