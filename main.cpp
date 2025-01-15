@@ -533,8 +533,9 @@ void updateMovement() {
         }
     } else if ((!keys[GLFW_KEY_LEFT_CONTROL] && !keys[GLFW_KEY_RIGHT_CONTROL]) && crouch ) {
         bool canUncrouch = true;
-        float highestPlatformHeight;
+        float nextplatformheight = std::numeric_limits<float>::max();
         float curentplatform;
+        std::string nextplafrom = "";
 
         for (const auto& platform : platforms) {
             bool isWithinXBounds = camX >= platform.x - platform.width / 2 - collisionThreshold && camX <= platform.x + platform.width / 2 + collisionThreshold;
@@ -542,8 +543,9 @@ void updateMovement() {
 
             if (isWithinXBounds && isWithinZBounds) {
                 curentplatform = platform.height + platform.heightdelta;
-                if (curentplatform >= highestPlatformHeight) {
-                    highestPlatformHeight = curentplatform;
+                if (curentplatform > camY && curentplatform < nextplatformheight) {
+                    nextplatformheight = curentplatform;
+                    nextplafrom = std::to_string(platform.x) + "," + std::to_string(platform.z);
                 }
             }
         }
@@ -551,7 +553,7 @@ void updateMovement() {
         for (const auto& platform : platforms) {
             if (camX >= platform.x - platform.width / 2 - collisionThreshold && camX <= platform.x + platform.width / 2 + collisionThreshold &&
                 camZ >= platform.z - platform.depth / 2 - collisionThreshold && camZ <= platform.z + platform.depth / 2 + collisionThreshold &&
-                camY + 1.0f > platform.heightdelta-(platform.height/2) && platform.heightdelta-(platform.height/2) > 0.0f && !(playerY >= highestPlatformHeight)) {
+                camY + 1.0f > platform.heightdelta-(platform.height/2) && platform.heightdelta-(platform.height/2) > 0.0f && nextplafrom == (std::to_string(platform.x) + "," + std::to_string(platform.z))) {
                 canUncrouch = false;
                 break;
             }
