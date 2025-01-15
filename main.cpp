@@ -235,7 +235,7 @@ struct Platform {
 
 std::vector<Platform> platforms = {
     {0.0f, 0.0f, 10.0f, 10.0f, 0.5f, 0.0f, "assets/textures/platform.jpeg", 0},
-    {0.0f, 0.0f, 1.5f, 1.5f, 0.5f, 2.0f, "assets/textures/platform.jpeg", 0},
+    {0.0f, 0.0f, 3.0f, 1.5f, 0.5f, 2.0f, "assets/textures/platform.jpeg", 0},
     {0.0f, 0.0f, 1.5f, 1.5f, 0.5f, 4.0f, "assets/textures/platform.jpeg", 0},
     {5.0f, 5.0f, 1.5f, 1.5f, 0.5f, 2.0f, "assets/textures/platform.jpeg", 0}
 
