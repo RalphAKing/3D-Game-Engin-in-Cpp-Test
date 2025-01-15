@@ -5,6 +5,9 @@
 #include <vector>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "src/include/json.hpp"
+#include <fstream>
+using json = nlohmann::json;
 
 const int GRID_WIDTH = 10;
 const int GRID_HEIGHT = 10;
@@ -234,12 +237,6 @@ struct Platform {
 };
 
 std::vector<Platform> platforms = {
-    {0.0f, 0.0f, 10.0f, 10.0f, 0.5f, 0.0f, "assets/textures/platform.jpeg", 0},
-    {0.0f, 0.0f, 3.0f, 1.5f, 0.5f, 2.0f, "assets/textures/platform.jpeg", 0},
-    {0.0f, 0.0f, 1.5f, 1.5f, 0.5f, 4.0f, "assets/textures/platform.jpeg", 0},
-    {5.0f, 5.0f, 1.5f, 1.5f, 0.5f, 2.0f, "assets/textures/platform.jpeg", 0}
-
-
 };
 bool isInFrustum(const Platform& platform, const Frustum& frustum) {
     float radYaw = camYaw * 3.14159f / 180.0f;
@@ -276,6 +273,45 @@ bool isInFrustum(const Platform& platform, const Frustum& frustum) {
     return (maxAngle < -(screenEdgeAngle + bufferAngle) || minAngle > (screenEdgeAngle + bufferAngle));
 }
 
+
+void loadmap(const std::string& mapName) {
+    for (auto& platform : platforms) {
+        if (platform.textureID != 0) {
+            glDeleteTextures(1, &platform.textureID);
+        }
+    }
+    platforms.clear();
+
+    std::string mapPath = "assets/maps/" + mapName + ".json";
+    std::ifstream file(mapPath);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open map file: " << mapPath << std::endl;
+        return;
+    }
+
+    try {
+        json mapData = json::parse(file);
+
+        for (const auto& platformData : mapData["platforms"]) {
+            Platform platform;
+            platform.x = platformData["x"];
+            platform.z = platformData["z"];
+            platform.width = platformData["width"];
+            platform.depth = platformData["depth"];
+            platform.height = platformData["height"];
+            platform.heightdelta = platformData["heightdelta"];
+            platform.texturePath = platformData["texture"];
+            platform.textureID = 0;
+            platforms.push_back(platform);
+        }
+    } catch (json::exception& e) {
+        std::cerr << "JSON parsing error: " << e.what() << std::endl;
+        return;
+    }
+    camX = 0.0f, camY = 2.2f, camZ = 5.0f; 
+    playerY = 0.0f;
+    loadPlatformTextures();
+}
 
 
 
@@ -500,6 +536,17 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
             velocityY = jumpSpeed;
             stamina -= 5;
         }
+
+        if (key == GLFW_KEY_L) {
+            loadmap("map1");    
+
+        }
+
+        if (key == GLFW_KEY_K) { 
+            loadmap("map2"); 
+
+        }
+ 
     } else if (action == GLFW_RELEASE) {
         keys[key] = false;
     }
@@ -1046,6 +1093,7 @@ int main() {
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
     framebuffer_size_callback(window, width, height);
+    loadmap("empty");
     while (!glfwWindowShouldClose(window)) {
 
         display(window);

@@ -1,0 +1,23 @@
+{
+    "name": "Map 1",
+    "platforms": [
+        {
+            "x": 0.0,
+            "z": 0.0,
+            "width": 10.0,
+            "depth": 10.0,
+            "height": 0.5,
+            "heightdelta": 0.0,
+            "texture": "assets/textures/platform.jpeg"
+        },
+        {
+            "x": 5.0,
+            "z": 5.0,
+            "width": 2.0,
+            "depth": 2.0,
+            "height": 0.5,
+            "heightdelta": 2.0,
+            "texture": "assets/textures/platform.jpeg"
+        }
+    ]
+}
