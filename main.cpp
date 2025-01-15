@@ -48,6 +48,7 @@ float savedCamX = 0.0f, savedCamY = 0.0f, savedCamZ = 0.0f;
 float savedCamYaw = 0.0f, savedCamPitch = 0.0f;
 bool wasMenuClosed = true;
 bool wireframs = false;
+std::string lastmap;
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
@@ -232,6 +233,7 @@ struct Platform {
     float width, depth; 
     float height;  
     float heightdelta;
+    std::string changemap;
     std::string texturePath;
     GLuint textureID;
 };
@@ -300,6 +302,7 @@ void loadmap(const std::string& mapName) {
             platform.depth = platformData["depth"];
             platform.height = platformData["height"];
             platform.heightdelta = platformData["heightdelta"];
+            platform.changemap = platformData["changemap"];
             platform.texturePath = platformData["texture"];
             platform.textureID = 0;
             platforms.push_back(platform);
@@ -496,14 +499,17 @@ bool isNearPlatform(float x, float z, float y, float camY) {
 
         if (isNearXBounds && isNearZBounds) {
             if ((camY-y)<=platform.height+platform.heightdelta - 0.1f && !(platform.heightdelta>(camY-y)) && canwalkbeneeth) {
+                lastmap = platform.changemap;
                 return true;  
             }
             
             if (!canwalkbeneeth && isBelowPlatform ) {
+                lastmap = platform.changemap;
                 return true;  
             }
         }
     }
+    lastmap = "";
     return false;
 }
 
@@ -665,6 +671,10 @@ void updateMovement() {
         moveZ = 0.0f;
         velocityY=0.0f;
         nojump = true;
+        if (lastmap != "") {
+            loadmap(lastmap);
+            lastmap = "";
+        }
     } else if (checkplatformHeight - playerY <= 0.5f && checkplatformHeight - playerY > 0.0f) {
         playerY = checkplatformHeight;
         camX += moveX * moveSpeed;

@@ -8,6 +8,7 @@
             "depth": 15.0,
             "height": 0.5,
             "heightdelta": 0.0,
+            "changemap":"",
             "texture": "assets/textures/platform.jpeg"
         },
         {
@@ -17,6 +18,7 @@
             "depth": 2.0,
             "height": 0.5,
             "heightdelta": 2.0,
+            "changemap":"",
             "texture": "assets/textures/platform.jpeg"
         },
         {
@@ -26,6 +28,7 @@
             "depth": 3.0,
             "height": 0.5,
             "heightdelta": 4.0,
+            "changemap":"",
             "texture": "assets/textures/platform.jpeg"
         },
         {
@@ -35,6 +38,7 @@
             "depth": 4.0,
             "height": 0.5,
             "heightdelta": 1.0,
+            "changemap":"",
             "texture": "assets/textures/platform.jpeg"
         }
     ]

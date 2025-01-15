@@ -1,6 +1,15 @@
 {
     "name": "Empty",
     "platforms": [
-        
+        {
+            "x": 5.0,
+            "z": 5.0,
+            "width": 2.0,
+            "depth": 2.0,
+            "height": 0.5,
+            "heightdelta": 2.0,
+            "changemap":"map1",
+            "texture": "assets/textures/platform.jpeg"
+        }
     ]
 }
