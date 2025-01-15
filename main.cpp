@@ -4,7 +4,7 @@
 #include <cmath>
 #include <vector>
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "src/include/stb_image.h"
 #include "src/include/json.hpp"
 #include <fstream>
 using json = nlohmann::json;
