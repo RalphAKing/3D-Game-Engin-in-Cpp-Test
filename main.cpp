@@ -536,17 +536,6 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
             velocityY = jumpSpeed;
             stamina -= 5;
         }
-
-        if (key == GLFW_KEY_L) {
-            loadmap("map1");    
-
-        }
-
-        if (key == GLFW_KEY_K) { 
-            loadmap("map2"); 
-
-        }
- 
     } else if (action == GLFW_RELEASE) {
         keys[key] = false;
     }
