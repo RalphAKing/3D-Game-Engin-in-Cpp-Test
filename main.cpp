@@ -402,10 +402,10 @@ void drawPlatformWireframes() {
         glTranslatef(platform.x, platform.heightdelta + halfHeight, platform.z);
 
         glBegin(GL_LINE_LOOP);
-        glVertex3f(-halfWidth, -halfHeight, -halfDepth);
-        glVertex3f(halfWidth, -halfHeight, -halfDepth);
-        glVertex3f(halfWidth, -halfHeight, halfDepth);
-        glVertex3f(-halfWidth, -halfHeight, halfDepth);
+        glVertex3f(-halfWidth, -halfHeight - collisionThreshold, -halfDepth);
+        glVertex3f(halfWidth, -halfHeight - collisionThreshold, -halfDepth);
+        glVertex3f(halfWidth, -halfHeight - collisionThreshold, halfDepth);
+        glVertex3f(-halfWidth, -halfHeight - collisionThreshold, halfDepth);
         glEnd();
 
         glBegin(GL_LINE_LOOP);
@@ -416,18 +416,19 @@ void drawPlatformWireframes() {
         glEnd();
 
         glBegin(GL_LINES);
-        glVertex3f(-halfWidth, -halfHeight, -halfDepth);
+        glVertex3f(-halfWidth, -halfHeight - collisionThreshold, -halfDepth);
         glVertex3f(-halfWidth, halfHeight, -halfDepth);
-        glVertex3f(halfWidth, -halfHeight, -halfDepth);
+        glVertex3f(halfWidth, -halfHeight - collisionThreshold, -halfDepth);
         glVertex3f(halfWidth, halfHeight, -halfDepth);
-        glVertex3f(halfWidth, -halfHeight, halfDepth);
+        glVertex3f(halfWidth, -halfHeight - collisionThreshold, halfDepth);
         glVertex3f(halfWidth, halfHeight, halfDepth);
-        glVertex3f(-halfWidth, -halfHeight, halfDepth);
+        glVertex3f(-halfWidth, -halfHeight - collisionThreshold, halfDepth);
         glVertex3f(-halfWidth, halfHeight, halfDepth);
         glEnd();
 
         glPopMatrix();
     }
+
 
     glColor3f(0.0f, 0.5f, 0.5f); 
     for (const auto& platform : platforms) {
@@ -498,7 +499,7 @@ bool isNearPlatform(float x, float z, float y, float camY) {
 
 
         if (isNearXBounds && isNearZBounds) {
-            if ((camY-y)<=platform.height+platform.heightdelta - 0.1f && !(platform.heightdelta>(camY-y)) && canwalkbeneeth) {
+            if ((camY-y)<=platform.height+platform.heightdelta - 0.1f && !(platform.heightdelta-collisionThreshold>(camY-y)) && canwalkbeneeth) {
                 lastmap = platform.changemap;
                 return true;  
             }
@@ -511,6 +512,28 @@ bool isNearPlatform(float x, float z, float y, float camY) {
     }
     lastmap = "";
     return false;
+}
+
+bool checkJump() {
+    float nextplatformheight = std::numeric_limits<float>::max();
+    float curentplatform;
+    std::string nextplafrom = "";
+
+    for (const auto& platform : platforms) {
+        bool isWithinXBounds = camX >= platform.x - platform.width / 2 - collisionThreshold && camX <= platform.x + platform.width / 2 + collisionThreshold;
+        bool isWithinZBounds = camZ >= platform.z - platform.depth / 2 - collisionThreshold && camZ <= platform.z + platform.depth / 2 + collisionThreshold;
+
+        if (isWithinXBounds && isWithinZBounds) {
+            curentplatform = platform.height + platform.heightdelta;
+            if (curentplatform > camY && curentplatform < nextplatformheight) {
+                nextplatformheight = curentplatform;
+            }
+        }
+    }
+    if (nextplatformheight-collisionThreshold <= camY+collisionThreshold) {
+        return false;
+    }
+    return true;
 }
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -536,8 +559,8 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
             }
         }
 
-        if (key == GLFW_KEY_SPACE && !isJumping && playerY == groundY && !crouch && stamina >= 5 && !nojump) {
-
+        if (key == GLFW_KEY_SPACE && !isJumping && playerY == groundY && !crouch && stamina >= 5 && !nojump && checkJump()) {
+            
             isJumping = true;
             velocityY = jumpSpeed;
             stamina -= 5;
@@ -724,7 +747,7 @@ void updateMovement() {
                 camY = playerY + 2.2f;
             }
 
-            if (keys[GLFW_KEY_SPACE]&& !crouch && stamina >= 5 && !nojump) {
+            if (keys[GLFW_KEY_SPACE]&& !crouch && stamina >= 5 && !nojump && checkJump()) {
                 isJumping = true;
                 velocityY = jumpSpeed; 
                 stamina -= 5;

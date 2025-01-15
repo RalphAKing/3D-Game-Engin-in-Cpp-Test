@@ -27,7 +27,7 @@
             "width": 3.0,
             "depth": 3.0,
             "height": 0.5,
-            "heightdelta": 4.0,
+            "heightdelta": 3.2,
             "changemap":"",
             "texture": "assets/textures/platform.jpeg"
         },
