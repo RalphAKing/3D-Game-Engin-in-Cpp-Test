@@ -259,17 +259,13 @@ struct PhysicsObject {
     float wobblePhase;
     float randomSpin;
 
-    PhysicsObject(float startX, float startY, float startZ, float objectSize = 1.0f) {
-        x = startX;
-        y = startY;
-        z = startZ;
+    PhysicsObject() : x(0.0f), y(0.0f), z(0.0f), size(1.0f) {
         velocityX = velocityY = velocityZ = 0.0f;
         rotationX = rotationY = rotationZ = 0.01f;
         angularVelocityX = angularVelocityY = angularVelocityZ = 0.01f;
         mass = 1.0f;
         friction = 0.8f; 
         restitution = 0.3f;  
-        size = objectSize;
 
         wobbleX = wobbleZ = 0.05f;
         wobblePhase = 0.0f;
@@ -545,6 +541,7 @@ void loadmap(const std::string& mapName) {
         }
     }
     platforms.clear();
+    physicsObjects.clear();
 
     std::string mapPath = "assets/maps/" + mapName + ".json";
     std::ifstream file(mapPath);
@@ -568,6 +565,14 @@ void loadmap(const std::string& mapName) {
             platform.texturePath = platformData["texture"];
             platform.textureID = 0;
             platforms.push_back(platform);
+        }
+        for (const auto& physicsobjectData : mapData["physicsobjects"]) {
+            PhysicsObject physicsobject;
+            physicsobject.x = physicsobjectData["x"];
+            physicsobject.y = physicsobjectData["y"];
+            physicsobject.z = physicsobjectData["z"];
+            physicsobject.size = physicsobjectData["size"];
+            physicsObjects.push_back(physicsobject);
         }
     } catch (json::exception& e) {
         std::cerr << "JSON parsing error: " << e.what() << std::endl;
@@ -1380,13 +1385,6 @@ int main() {
     glfwGetFramebufferSize(window, &width, &height);
     framebuffer_size_callback(window, width, height);
     loadmap("empty");
-
-
-
-    physicsObjects.emplace_back(0.0f, 5.0f, 0.0f, 1.0f);
-    physicsObjects.emplace_back(2.0f, 5.0f, 2.0f, 1.0f);
-
-
     while (!glfwWindowShouldClose(window)) {
 
         display(window);

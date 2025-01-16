@@ -11,5 +11,14 @@
             "changemap":"map1",
             "texture": "assets/textures/platform.jpeg"
         }
+    ],
+    "physicsobjects": [
+        {
+            "x": 2.0,
+            "y": 5.0,
+            "z": 2.0,
+            "size": 1.0
+        }
     ]
+
 }
