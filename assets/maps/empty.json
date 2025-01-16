@@ -17,7 +17,15 @@
             "x": 2.0,
             "y": 5.0,
             "z": 2.0,
-            "size": 1.0
+            "size": 1.0,
+            "texture": "assets/textures/platform.jpeg"
+        },
+        {
+            "x": 2.5,
+            "y": 10.0,
+            "z": 2.0,
+            "size": 1.0,
+            "texture": "assets/textures/platform.jpeg"
         }
     ]
 

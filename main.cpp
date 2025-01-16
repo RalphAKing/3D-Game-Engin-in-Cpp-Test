@@ -64,7 +64,7 @@ void display();
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void loadFont(const char* filePath);
 void renderText(const std::string& text, float x, float y, float scale, GLuint fontTexture);
-void loadPlatformTextures();
+void loadLevelTextures();
 
 GLuint fontTexture;
 int fontWidth, fontHeight;
@@ -243,6 +243,9 @@ std::vector<Platform> platforms = {
 
 struct PhysicsObject {
     float x, y, z;
+    float size; 
+    std::string texturePath;
+    GLuint textureID;
 
     float velocityX, velocityY, velocityZ;
 
@@ -252,8 +255,6 @@ struct PhysicsObject {
     float mass;
     float friction;
     float restitution; 
-    float size; 
-    GLuint textureID;
 
     float wobbleX, wobbleZ;
     float wobblePhase;
@@ -271,7 +272,6 @@ struct PhysicsObject {
         wobblePhase = 0.0f;
         randomSpin = 0.0f;
         
-        textureID = 0;
     }
     
     void update(float deltaTime) {
@@ -572,6 +572,7 @@ void loadmap(const std::string& mapName) {
             physicsobject.y = physicsobjectData["y"];
             physicsobject.z = physicsobjectData["z"];
             physicsobject.size = physicsobjectData["size"];
+            physicsobject.texturePath = physicsobjectData["texture"];
             physicsObjects.push_back(physicsobject);
         }
     } catch (json::exception& e) {
@@ -580,18 +581,20 @@ void loadmap(const std::string& mapName) {
     }
     camX = 0.0f, camY = 2.2f, camZ = 5.0f; 
     playerY = 0.0f;
-    loadPlatformTextures();
+    loadLevelTextures();
 }
 
 
 
 
-void loadPlatformTextures() {
+void loadLevelTextures() {
     for (auto& platform : platforms) {
         platform.textureID = loadTexture(platform.texturePath.c_str());
     }
+    for (auto& physicsobject : physicsObjects) {
+        physicsobject.textureID = loadTexture(physicsobject.texturePath.c_str());
+    }
 }
-
 
 void drawCube(float size, GLuint textureID) {
     float halfSize = size / 2.0f;
@@ -1364,9 +1367,6 @@ int main() {
         std::cerr << "Font texture failed to load" << std::endl;
         return -1;
     }
-
-    loadPlatformTextures();
-
     
     glfwSwapInterval(Vsync);
     glfwSetKeyCallback(window, keyCallback);
@@ -1384,7 +1384,9 @@ int main() {
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
     framebuffer_size_callback(window, width, height);
+
     loadmap("empty");
+    
     while (!glfwWindowShouldClose(window)) {
 
         display(window);
