@@ -23,6 +23,10 @@ A cutting-edge 3D game engine crafted in C++ and powered by OpenGL. This robust 
 - Define platform textures location for unique visual effects and to have variation in maps.
 - Player can walk up platforms that are 0.5f or less in height without jumping.
 
+### Physics Objects
+- Create physics block with spacific size and starting possition.
+- They detect collisions with other physics objects aswell as platforms and the player.
+
 ### Graphical User Interface (GUI)
 - Customizable fixed GUI layout.
 - Add and manage items to enhance user experience.
@@ -110,6 +114,8 @@ Contributions are welcome! To contribute:
 - Advanced lighting and shadows.
 - Chickens
 - Physics engine integration.
+    - Add support for importing obj file as physics object.
+    - Add textures to physics objects.
 - Enhanced level editor for seamless design.
 
 ## License
