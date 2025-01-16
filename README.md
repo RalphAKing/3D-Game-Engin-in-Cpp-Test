@@ -6,7 +6,6 @@ A cutting-edge 3D game engine crafted in C++ and powered by OpenGL. This robust 
 - Menu gittering when entering it while moving. 
 - Physics objects cannot go beneeth platforms
 - Physics objects cannot be stepped on 
-- Physics objects font have textures
 ## Features
 
 ### Player Movement
@@ -115,7 +114,6 @@ Contributions are welcome! To contribute:
 - Chickens
 - Physics engine integration.
     - Add support for importing obj file as physics object.
-    - Add textures to physics objects.
 - Enhanced level editor for seamless design.
 
 ## License
