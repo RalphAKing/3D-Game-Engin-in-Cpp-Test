@@ -240,6 +240,268 @@ struct Platform {
 
 std::vector<Platform> platforms = {
 };
+
+struct PhysicsObject {
+    float x, y, z;
+
+    float velocityX, velocityY, velocityZ;
+
+    float rotationX, rotationY, rotationZ;
+    float angularVelocityX, angularVelocityY, angularVelocityZ;
+  
+    float mass;
+    float friction;
+    float restitution; 
+    float size; 
+    GLuint textureID;
+
+    float wobbleX, wobbleZ;
+    float wobblePhase;
+    float randomSpin;
+
+    PhysicsObject(float startX, float startY, float startZ, float objectSize = 1.0f) {
+        x = startX;
+        y = startY;
+        z = startZ;
+        velocityX = velocityY = velocityZ = 0.0f;
+        rotationX = rotationY = rotationZ = 0.01f;
+        angularVelocityX = angularVelocityY = angularVelocityZ = 0.01f;
+        mass = 1.0f;
+        friction = 0.8f; 
+        restitution = 0.3f;  
+        size = objectSize;
+
+        wobbleX = wobbleZ = 0.05f;
+        wobblePhase = 0.0f;
+        randomSpin = 0.0f;
+        
+        textureID = 0;
+    }
+    
+    void update(float deltaTime) {
+        const float GRAVITY = -9.81f;
+        const float VELOCITY_THRESHOLD = 0.01f;
+        const float ANGULAR_DAMPING = 0.98f;
+        velocityY += GRAVITY * deltaTime;
+        float prevX = x;
+        float prevY = y;
+        float prevZ = z;
+
+        x += velocityX * deltaTime;
+        y += velocityY * deltaTime;
+        z += velocityZ * deltaTime;
+        
+        for (const auto& platform : platforms) {
+            bool isWithinXBounds = x >= platform.x - platform.width/2 - size/2 && 
+                                x <= platform.x + platform.width/2 + size/2;
+            bool isWithinZBounds = z >= platform.z - platform.depth/2 - size/2 && 
+                                z <= platform.z + platform.depth/2 + size/2;
+            float platformTop = platform.height + platform.heightdelta;
+            float platformBottom = platform.heightdelta;
+            
+            if (isWithinXBounds && isWithinZBounds) {
+                if (prevY - size/2 >= platformTop && y - size/2 < platformTop) {
+                    y = platformTop + size/2;
+                    velocityY = -velocityY * restitution;
+                    velocityX *= (1.0f - friction * deltaTime);
+                    velocityZ *= (1.0f - friction * deltaTime);
+  
+                    if (abs(velocityY) > 1.0f) {
+                        angularVelocityX += (rand() % 100 - 50) / 50.0f;
+                        angularVelocityZ += (rand() % 100 - 50) / 50.0f;
+                    }
+                }
+
+                else if (prevY + size/2 <= platformBottom && y + size/2 > platformBottom) {
+                    y = platformBottom - size/2;
+                    velocityY = -velocityY * restitution;
+                }
+                else {
+
+                    if (prevX + size/2 <= platform.x - platform.width/2 || 
+                        prevX - size/2 >= platform.x + platform.width/2) {
+                        x = prevX;
+                        velocityX = -velocityX * restitution;
+                    }
+
+                    if (prevZ + size/2 <= platform.z - platform.depth/2 || 
+                        prevZ - size/2 >= platform.z + platform.depth/2) {
+                        z = prevZ;
+                        velocityZ = -velocityZ * restitution;
+                    }
+                }
+            }
+        }
+
+        if (y - size/2 <= groundY) {
+            y = groundY + size/2;
+            if (velocityY < 0) {
+                velocityY = -velocityY * restitution;
+                if (abs(velocityY) > 1.0f) {
+                    angularVelocityX += (rand() % 100 - 50) / 50.0f;
+                    angularVelocityZ += (rand() % 100 - 50) / 50.0f;
+                }
+            }
+            velocityX *= (1.0f - friction * deltaTime);
+            velocityZ *= (1.0f - friction * deltaTime);
+            
+            if (abs(velocityX) < VELOCITY_THRESHOLD) velocityX = 0.0f;
+            if (abs(velocityZ) < VELOCITY_THRESHOLD) velocityZ = 0.0f;
+        }
+
+        rotationX += angularVelocityX * deltaTime;
+        rotationY += angularVelocityY * deltaTime;
+        rotationZ += angularVelocityZ * deltaTime;
+
+        angularVelocityX *= ANGULAR_DAMPING;
+        angularVelocityY *= ANGULAR_DAMPING;
+        angularVelocityZ *= ANGULAR_DAMPING;
+
+        while (rotationX > 360.0f) rotationX -= 360.0f;
+        while (rotationX < -360.0f) rotationX += 360.0f;
+        while (rotationY > 360.0f) rotationY -= 360.0f;
+        while (rotationY < -360.0f) rotationY += 360.0f;
+        while (rotationZ > 360.0f) rotationZ -= 360.0f;
+        while (rotationZ < -360.0f) rotationZ += 360.0f;
+    }
+
+    
+    bool checkPlatformCollision(const Platform& platform) {
+        return (x + size/2 >= platform.x - platform.width/2 &&
+                x - size/2 <= platform.x + platform.width/2 &&
+                z + size/2 >= platform.z - platform.depth/2 &&
+                z - size/2 <= platform.z + platform.depth/2 &&
+                y - size/2 <= platform.height + platform.heightdelta &&
+                y + size/2 >= platform.heightdelta);
+    }
+    
+    void handlePlatformCollision(const Platform& platform) {
+        float penetrationY = (platform.height + platform.heightdelta) - (y - size/2);
+        if (penetrationY > 0 && velocityY < 0) {
+            y += penetrationY;
+            velocityY = -velocityY * restitution;
+        }
+    }
+    
+    void applyForce(float forceX, float forceZ) {
+        const float FORCE_MULTIPLIER = 2.0f;  
+        velocityX += (forceX * FORCE_MULTIPLIER) / mass;
+        velocityZ += (forceZ * FORCE_MULTIPLIER) / mass;
+    }
+
+    
+    void draw() {
+        glPushMatrix();
+        glTranslatef(x, y, z);
+        glRotatef(rotationX, 1.0f, 0.0f, 0.0f);
+        glRotatef(rotationY, 0.0f, 1.0f, 0.0f);
+        glRotatef(rotationZ, 0.0f, 0.0f, 1.0f);
+        drawCube(size, textureID);
+        glPopMatrix();
+    }
+};
+
+std::vector<PhysicsObject> physicsObjects;
+
+void checkPlayerPhysicsObjectCollision() {
+    float playerRadius = 0.5f;
+    
+    for (auto& obj : physicsObjects) {
+        float dx = obj.x - camX; 
+        float dz = obj.z - camZ;
+        float distance = sqrt(dx*dx + dz*dz);
+        
+        if (distance < (playerRadius + obj.size/2)) {
+            float length = sqrt(dx*dx + dz*dz);
+            if (length > 0) {
+                dx /= length;
+                dz /= length;
+            }
+            
+            float overlap = (playerRadius + obj.size/2) - distance;
+            float pushStrength = 5.0f * overlap;
+
+            obj.applyForce(dx * pushStrength, dz * pushStrength);
+
+            float playerPushback = 0.1f;
+            camX -= dx * playerPushback;
+            camZ -= dz * playerPushback;
+
+            obj.angularVelocityY += (rand() % 100 - 50) / 10.0f;
+        }
+    }
+}
+
+void checkObjectCollisions() {
+    for (size_t i = 0; i < physicsObjects.size(); i++) {
+        for (size_t j = i + 1; j < physicsObjects.size(); j++) {
+            PhysicsObject& obj1 = physicsObjects[i];
+            PhysicsObject& obj2 = physicsObjects[j];
+
+            float dx = obj2.x - obj1.x;
+            float dy = obj2.y - obj1.y;
+            float dz = obj2.z - obj1.z;
+            float distance = sqrt(dx*dx + dy*dy + dz*dz);
+
+            float minDist = (obj1.size + obj2.size) / 2.0f;
+            if (distance < minDist) {
+                if (distance > 0) {
+                    dx /= distance;
+                    dy /= distance;
+                    dz /= distance;
+                }
+
+                float overlap = minDist - distance;
+
+                float relativeVelX = obj1.velocityX - obj2.velocityX;
+                float relativeVelY = obj1.velocityY - obj2.velocityY;
+                float relativeVelZ = obj1.velocityZ - obj2.velocityZ;
+
+                float impulse = -(1.0f + obj1.restitution * obj2.restitution) * 
+                              (relativeVelX * dx + relativeVelY * dy + relativeVelZ * dz) /
+                              (1.0f/obj1.mass + 1.0f/obj2.mass);
+
+                obj1.velocityX += (impulse / obj1.mass) * dx;
+                obj1.velocityY += (impulse / obj1.mass) * dy;
+                obj1.velocityZ += (impulse / obj1.mass) * dz;
+
+                obj2.velocityX -= (impulse / obj2.mass) * dx;
+                obj2.velocityY -= (impulse / obj2.mass) * dy;
+                obj2.velocityZ -= (impulse / obj2.mass) * dz;
+
+                float moveAmount1 = overlap * (obj2.mass / (obj1.mass + obj2.mass));
+                float moveAmount2 = overlap * (obj1.mass / (obj1.mass + obj2.mass));
+
+                obj1.x -= dx * moveAmount1;
+                obj1.y -= dy * moveAmount1;
+                obj1.z -= dz * moveAmount1;
+
+                obj2.x += dx * moveAmount2;
+                obj2.y += dy * moveAmount2;
+                obj2.z += dz * moveAmount2;
+
+                float spinForce = overlap * 10.0f;
+                obj1.angularVelocityY += (rand() % 100 - 50) / 50.0f * spinForce;
+                obj2.angularVelocityY += (rand() % 100 - 50) / 50.0f * spinForce;
+            }
+        }
+    }
+}
+
+void updatePhysicsObjects(float deltaTime) {
+    for (auto& obj : physicsObjects) {
+        obj.update(deltaTime);
+    }
+    checkObjectCollisions(); 
+    checkPlayerPhysicsObjectCollision();
+}
+
+void drawPhysicsObjects() {
+    for (auto& obj : physicsObjects) {
+        obj.draw();
+    }
+}
+
 bool isInFrustum(const Platform& platform, const Frustum& frustum) {
     float radYaw = camYaw * 3.14159f / 180.0f;
     float screenEdgeAngle = frustum.fov / 2;
@@ -1039,6 +1301,8 @@ void display(GLFWwindow* window) {
         }
         drawGrids(GRID_WIDTH, 1.0f);
         drawPlatforms();
+        updatePhysicsObjects(fixedTimeStep);
+        drawPhysicsObjects();
         GUI::drawHUD(); 
     }
 
@@ -1116,6 +1380,13 @@ int main() {
     glfwGetFramebufferSize(window, &width, &height);
     framebuffer_size_callback(window, width, height);
     loadmap("empty");
+
+
+
+    physicsObjects.emplace_back(0.0f, 5.0f, 0.0f, 1.0f);
+    physicsObjects.emplace_back(2.0f, 5.0f, 2.0f, 1.0f);
+
+
     while (!glfwWindowShouldClose(window)) {
 
         display(window);
