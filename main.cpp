@@ -301,25 +301,22 @@ struct PhysicsObject {
                     velocityY = -velocityY * restitution;
                     velocityX *= (1.0f - friction * deltaTime);
                     velocityZ *= (1.0f - friction * deltaTime);
-  
+
                     if (abs(velocityY) > 1.0f) {
                         angularVelocityX += (rand() % 100 - 50) / 50.0f;
                         angularVelocityZ += (rand() % 100 - 50) / 50.0f;
                     }
                 }
-
                 else if (prevY + size/2 <= platformBottom && y + size/2 > platformBottom) {
                     y = platformBottom - size/2;
                     velocityY = -velocityY * restitution;
                 }
-                else {
-
+                else if (y + size/2 > platformBottom && y - size/2 < platformTop) {
                     if (prevX + size/2 <= platform.x - platform.width/2 || 
                         prevX - size/2 >= platform.x + platform.width/2) {
                         x = prevX;
                         velocityX = -velocityX * restitution;
                     }
-
                     if (prevZ + size/2 <= platform.z - platform.depth/2 || 
                         prevZ - size/2 >= platform.z + platform.depth/2) {
                         z = prevZ;
@@ -327,6 +324,7 @@ struct PhysicsObject {
                     }
                 }
             }
+
         }
 
         if (y - size/2 <= groundY) {
@@ -363,13 +361,16 @@ struct PhysicsObject {
 
     
     bool checkPlatformCollision(const Platform& platform) {
-        return (x + size/2 >= platform.x - platform.width/2 &&
-                x - size/2 <= platform.x + platform.width/2 &&
-                z + size/2 >= platform.z - platform.depth/2 &&
-                z - size/2 <= platform.z + platform.depth/2 &&
-                y - size/2 <= platform.height + platform.heightdelta &&
-                y + size/2 >= platform.heightdelta);
+        bool withinX = x + size/2 >= platform.x - platform.width/2 &&
+                    x - size/2 <= platform.x + platform.width/2;
+        bool withinZ = z + size/2 >= platform.z - platform.depth/2 &&
+                    z - size/2 <= platform.z + platform.depth/2;
+        bool withinY = y + size/2 >= platform.heightdelta &&
+                    y - size/2 <= platform.height + platform.heightdelta;
+        
+        return withinX && withinZ && withinY;
     }
+
     
     void handlePlatformCollision(const Platform& platform) {
         float penetrationY = (platform.height + platform.heightdelta) - (y - size/2);

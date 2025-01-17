@@ -4,7 +4,6 @@ A cutting-edge 3D game engine crafted in C++ and powered by OpenGL. This robust 
 
 ## Know Bugs
 - Menu gittering when entering it while moving. 
-- Physics objects cannot go beneeth platforms
 - Physics objects cannot be stepped on 
 ## Features
 
