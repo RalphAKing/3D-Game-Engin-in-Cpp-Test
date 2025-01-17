@@ -18,14 +18,14 @@
             "y": 5.0,
             "z": 2.0,
             "size": 1.0,
-            "texture": "assets/textures/platform.jpeg"
+            "texture": "assets/textures/crate.png"
         },
         {
             "x": 2.5,
             "y": 10.0,
             "z": 2.0,
             "size": 1.0,
-            "texture": "assets/textures/platform.jpeg"
+            "texture": "assets/textures/crate.png"
         }
     ]
 
