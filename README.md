@@ -4,7 +4,6 @@ A cutting-edge 3D game engine crafted in C++ and powered by OpenGL. This robust 
 
 ## Know Bugs
 - Menu gittering when entering it while moving. 
-- Physics objects cannot be stepped on 
 ## Features
 
 ### Player Movement
@@ -24,6 +23,7 @@ A cutting-edge 3D game engine crafted in C++ and powered by OpenGL. This robust 
 ### Physics Objects
 - Create physics block with spacific size and starting possition.
 - They detect collisions with other physics objects aswell as platforms and the player.
+- When stepped on a physics object will repel away from the player according to the weight of the player.
 
 ### Graphical User Interface (GUI)
 - Customizable fixed GUI layout.

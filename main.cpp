@@ -400,34 +400,49 @@ struct PhysicsObject {
 
 std::vector<PhysicsObject> physicsObjects;
 
+
 void checkPlayerPhysicsObjectCollision() {
     float playerRadius = 0.5f;
+    float playerHeight = 2.2f; 
+    float stepHeight = 0.5f;  
     
     for (auto& obj : physicsObjects) {
         float dx = obj.x - camX; 
         float dz = obj.z - camZ;
-        float distance = sqrt(dx*dx + dz*dz);
-        
-        if (distance < (playerRadius + obj.size/2)) {
+        float dy = (obj.y + obj.size/2) - (camY - playerHeight/2);
+        float horizontalDistance = sqrt(dx*dx + dz*dz);
+
+        if (horizontalDistance < (playerRadius + obj.size/2)) {
             float length = sqrt(dx*dx + dz*dz);
             if (length > 0) {
                 dx /= length;
                 dz /= length;
             }
-            
-            float overlap = (playerRadius + obj.size/2) - distance;
-            float pushStrength = 5.0f * overlap;
 
-            obj.applyForce(dx * pushStrength, dz * pushStrength);
+            if (dy > 0 && dy < stepHeight) {
+                camY = obj.y + obj.size/2 + playerHeight/2;
+            }
+            else if (dy < 0 && dy > -playerHeight) {
+                float overlap = (playerRadius + obj.size/2) - horizontalDistance;
+                float pushStrength = 5.0f * overlap;
+                
+                obj.applyForce(dx * pushStrength, dz * pushStrength);
+                
+                float playerPushback = 0.1f;
+                camX -= dx * playerPushback;
+                camZ -= dz * playerPushback;
+                
+                obj.angularVelocityY += (rand() % 100 - 50) / 10.0f;
+            }
 
-            float playerPushback = 0.1f;
-            camX -= dx * playerPushback;
-            camZ -= dz * playerPushback;
-
-            obj.angularVelocityY += (rand() % 100 - 50) / 10.0f;
+            if (abs(dy) < 0.1f && velocityY <= 0) {
+                obj.velocityY -= 9.81f * 0.016f;
+                velocityY = 0;
+            }
         }
     }
 }
+
 
 void checkObjectCollisions() {
     for (size_t i = 0; i < physicsObjects.size(); i++) {
