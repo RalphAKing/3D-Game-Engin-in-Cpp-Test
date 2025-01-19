@@ -17,6 +17,9 @@ std::vector<float> gridVertices;
 float camX = 0.0f, camY = 2.2f, camZ = 5.0f; 
 float camYaw = 0.0f, camPitch = 0.0f;
 float playerY = 0.0f;
+bool isHoldingObject;
+int heldObjectIndex;
+float holdDistance = 5.0f;
 
 float frameCount = 0;
 float lastFPSUpdate = 0.0f;
@@ -514,26 +517,29 @@ void drawPhysicsObjects() {
     }
 }
 
-bool IsObjectInfront(const PhysicsObject& obj) {
+int IsObjectInfront(float& distance) {
     float playerRadius = 5.0f;
     float playerHeight = 2.2f;
+    
+    for (size_t i = 0; i < physicsObjects.size(); i++) {
+        const auto& obj = physicsObjects[i];
+        float dx = obj.x - camX;
+        float dz = obj.z - camZ;
+        float dy = (obj.y + obj.size/2) - (camY - playerHeight/2);
+        float horizontalDistance = sqrt(dx*dx + dz*dz);
 
-    float dx = obj.x - camX;
-    float dz = obj.z - camZ;
-    float dy = (obj.y + obj.size/2) - (camY - playerHeight/2);
-    float horizontalDistance = sqrt(dx*dx + dz*dz);
+        float radYaw = camYaw * 3.14159f / 180.0f;
+        float angle = atan2(dx, -dz) - radYaw;
+        while (angle > M_PI) angle -= 2 * M_PI;
+        while (angle < -M_PI) angle += 2 * M_PI;
 
-    float radYaw = camYaw * 3.14159f / 180.0f;
-    float angle = atan2(dx, -dz) - radYaw;
-    while (angle > M_PI) angle -= 2 * M_PI;
-    while (angle < -M_PI) angle += 2 * M_PI;
-
-
-    if (horizontalDistance < (playerRadius + obj.size/2) &&
-        fabs(angle) < (M_PI / 6.0f)) {
-        return true;
+        if (horizontalDistance < (playerRadius + obj.size/2) &&
+            fabs(angle) < (M_PI / 6.0f)) {
+            distance = horizontalDistance;
+            return i;
+        }
     }
-    return false;
+    return -1;
 }
 
 bool isInFrustum(const Platform& platform, const Frustum& frustum) {
@@ -844,6 +850,25 @@ bool checkJump() {
     return true;
 }
 
+void updateHeldObject() {
+    if (!isHoldingObject || heldObjectIndex < 0) return;
+        float radYaw = camYaw * 3.14159f / 180.0f;
+        float radPitch = camPitch * 3.14159f / 180.0f;
+        
+        float offsetX = sin(radYaw) * cos(radPitch) * holdDistance;
+        float offsetY = -sin(radPitch) * holdDistance;
+        float offsetZ = -cos(radYaw) * cos(radPitch) * holdDistance;
+        
+        PhysicsObject& obj = physicsObjects[heldObjectIndex];
+        obj.x = camX + offsetX;
+        obj.y = camY + offsetY;
+        obj.z = camZ + offsetZ;
+        
+        obj.velocityX = 0;
+        obj.velocityY = 0;
+        obj.velocityZ = 0;
+}
+
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
         keys[key] = true;
@@ -874,13 +899,20 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
             stamina -= 5;
         }
 
-        if (key == GLFW_KEY_E) {
-            for (auto& obj : physicsObjects) {
-                if (IsObjectInfront(obj)) {
-                    std::cout << " Hit " << std::endl;
+        if (key == GLFW_KEY_E && action == GLFW_PRESS) {
+            float distance;
+            if (!isHoldingObject) {
+                int objectIndex = IsObjectInfront(distance);
+                if (objectIndex >= 0) {
+                    isHoldingObject = true;
+                    heldObjectIndex = objectIndex;
                 }
+            } else {
+                isHoldingObject = false;
+                heldObjectIndex = -1;
             }
         }
+
     } else if (action == GLFW_RELEASE) {
         keys[key] = false;
     }
@@ -1355,6 +1387,7 @@ void display(GLFWwindow* window) {
         }
         drawGrids(GRID_WIDTH, 1.0f);
         drawPlatforms();
+        updateHeldObject();
         updatePhysicsObjects(fixedTimeStep);
         drawPhysicsObjects();
         GUI::drawHUD(); 
