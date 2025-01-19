@@ -625,6 +625,8 @@ void loadmap(const std::string& mapName) {
     }
     camX = 0.0f, camY = 2.2f, camZ = 5.0f; 
     playerY = 0.0f;
+    isHoldingObject=false;
+    heldObjectIndex=-1;
     loadLevelTextures();
 }
 

@@ -4,7 +4,7 @@ A cutting-edge 3D game engine crafted in C++ and powered by OpenGL. This robust 
 
 ## Know Bugs
 - Menu gittering when entering it while moving. 
-- Can take physics props between levels 
+- physics props phase though platfroms when platforms are above eachother. 
 - Physics props dont have collisions
 ## Features
 
