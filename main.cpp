@@ -854,22 +854,45 @@ bool checkJump() {
 
 void updateHeldObject() {
     if (!isHoldingObject || heldObjectIndex < 0) return;
-        float radYaw = camYaw * 3.14159f / 180.0f;
-        float radPitch = camPitch * 3.14159f / 180.0f;
-        
-        float offsetX = sin(radYaw) * cos(radPitch) * holdDistance;
-        float offsetY = -sin(radPitch) * holdDistance;
-        float offsetZ = -cos(radYaw) * cos(radPitch) * holdDistance;
-        
-        PhysicsObject& obj = physicsObjects[heldObjectIndex];
-        obj.x = camX + offsetX;
-        obj.y = camY + offsetY;
-        obj.z = camZ + offsetZ;
-        
-        obj.velocityX = 0;
-        obj.velocityY = 0;
-        obj.velocityZ = 0;
+    
+    float radYaw = camYaw * 3.14159f / 180.0f;
+    float radPitch = camPitch * 3.14159f / 180.0f;
+    
+    float targetX = camX + sin(radYaw) * cos(radPitch) * holdDistance;
+    float targetY = camY + -sin(radPitch) * holdDistance;
+    float targetZ = camZ + -cos(radYaw) * cos(radPitch) * holdDistance;
+    
+    PhysicsObject& obj = physicsObjects[heldObjectIndex];
+    
+    float springStrength = 15.0f;
+    float dampingFactor = 0.85f;
+
+    float dx = targetX - obj.x;
+    float dy = targetY - obj.y;
+    float dz = targetZ - obj.z;
+    
+
+    obj.velocityX += dx * springStrength * 0.016f;
+    obj.velocityY += dy * springStrength * 0.016f;
+    obj.velocityZ += dz * springStrength * 0.016f;
+
+    obj.velocityX *= dampingFactor;
+    obj.velocityY *= dampingFactor;
+    obj.velocityZ *= dampingFactor;
+    
+    float maxVelocity = 20.0f;
+    float velocityMagnitude = sqrt(obj.velocityX * obj.velocityX + 
+                                 obj.velocityY * obj.velocityY + 
+                                 obj.velocityZ * obj.velocityZ);
+    
+    if (velocityMagnitude > maxVelocity) {
+        float scale = maxVelocity / velocityMagnitude;
+        obj.velocityX *= scale;
+        obj.velocityY *= scale;
+        obj.velocityZ *= scale;
+    }
 }
+
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
