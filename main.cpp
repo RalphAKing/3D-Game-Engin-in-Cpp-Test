@@ -268,7 +268,7 @@ struct PhysicsObject {
         rotationX = rotationY = rotationZ = 0.01f;
         angularVelocityX = angularVelocityY = angularVelocityZ = 0.01f;
         mass = 1.0f;
-        friction = 0.8f; 
+        friction = 0.9f; 
         restitution = 0.3f;  
 
         wobbleX = wobbleZ = 0.05f;
@@ -278,9 +278,9 @@ struct PhysicsObject {
     }
     
     void update(float deltaTime) {
-        const float GRAVITY = -9.81f;
+        const float GRAVITY = -1.0f;
         const float VELOCITY_THRESHOLD = 0.01f;
-        const float ANGULAR_DAMPING = 0.98f;
+        const float ANGULAR_DAMPING = 0.9f;
         velocityY += GRAVITY * deltaTime;
         float prevX = x;
         float prevY = y;
@@ -289,7 +289,7 @@ struct PhysicsObject {
         x += velocityX * deltaTime;
         y += velocityY * deltaTime;
         z += velocityZ * deltaTime;
-        
+        bool met=false;
         for (const auto& platform : platforms) {
             bool isWithinXBounds = x >= platform.x - platform.width/2 - size/2 && 
                                 x <= platform.x + platform.width/2 + size/2;
@@ -299,7 +299,24 @@ struct PhysicsObject {
             float platformBottom = platform.heightdelta;
             
             if (isWithinXBounds && isWithinZBounds) {
-                if (prevY - size/2 >= platformTop && y - size/2 < platformTop) {
+                if (prevY - size/2 >= platformTop && y - size/2 <= platformTop) {
+                    met = true;
+                }
+                
+            }
+
+        }
+        for (const auto& platform : platforms) {
+            bool isWithinXBounds = x >= platform.x - platform.width/2 - size/2 && 
+                                x <= platform.x + platform.width/2 + size/2;
+            bool isWithinZBounds = z >= platform.z - platform.depth/2 - size/2 && 
+                                z <= platform.z + platform.depth/2 + size/2;
+            float platformTop = platform.height + platform.heightdelta;
+            float platformBottom = platform.heightdelta;
+            
+            if (isWithinXBounds && isWithinZBounds) {
+                if (prevY - size/2 >= platformTop && y - size/2 <= platformTop) {
+                    met = true;
                     y = platformTop + size/2;
                     velocityY = -velocityY * restitution;
                     velocityX *= (1.0f - friction * deltaTime);
@@ -310,11 +327,11 @@ struct PhysicsObject {
                         angularVelocityZ += (rand() % 100 - 50) / 50.0f;
                     }
                 }
-                else if (prevY + size/2 <= platformBottom && y + size/2 > platformBottom) {
+                else if (prevY + size/2 <= platformBottom && y + size/2 > platformBottom && !met) {
                     y = platformBottom - size/2;
                     velocityY = -velocityY * restitution;
                 }
-                else if (y + size/2 > platformBottom && y - size/2 < platformTop) {
+                else if (y + size/2 > platformBottom && y - size/2 < platformTop && !met) {
                     if (prevX + size/2 <= platform.x - platform.width/2 || 
                         prevX - size/2 >= platform.x + platform.width/2) {
                         x = prevX;
@@ -329,6 +346,7 @@ struct PhysicsObject {
             }
 
         }
+
 
         if (y - size/2 <= groundY) {
             y = groundY + size/2;
