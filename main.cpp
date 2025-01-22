@@ -278,7 +278,7 @@ struct PhysicsObject {
     }
     
     void update(float deltaTime) {
-        const float GRAVITY = -16.0f;
+        const float GRAVITY = -9.81f * 2;
         const float VELOCITY_THRESHOLD = 0.01f;
         const float ANGULAR_DAMPING = 0.8f;
         velocityY += GRAVITY * deltaTime;
