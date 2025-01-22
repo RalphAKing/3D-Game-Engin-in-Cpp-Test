@@ -114,7 +114,6 @@ Contributions are welcome! To contribute:
 - Chickens
 - Physics engine integration.
     - Add support for importing obj file as physics object.
-    - Add support for picking up physics objects by looking at them and pressing E.
 - Enhanced level editor for seamless design.
 
 ## License
