@@ -1180,10 +1180,11 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
         
         int width, height;
         glfwGetWindowSize(window, &width, &height);
+        float scaleFactor = std::min(static_cast<float>(width) / 1920.0f, static_cast<float>(height) / 1080.0f);
 
-        float buttonWidth = 300.0f;
-        float buttonHeight = 100.0f;
-        float buttonSpacing = 50.0f;
+        float buttonWidth = 300.0f * scaleFactor;
+        float buttonHeight = 100.0f * scaleFactor;
+        float buttonSpacing = 50.0f * scaleFactor;
         int numButtons = std::size(menueData);
         float totalHeight = numButtons * buttonHeight + (numButtons - 1) * buttonSpacing;
         float startY = (height - totalHeight) / 2.0f;
@@ -1339,6 +1340,7 @@ public:
             wasMenuClosed = false;
         }
         glfwGetWindowSize(window, &width, &height);
+        float scaleFactor = std::min(static_cast<float>(width) / 1920.0f, static_cast<float>(height) / 1080.0f);
 
         glMatrixMode(GL_PROJECTION);
         glPushMatrix();
@@ -1351,9 +1353,9 @@ public:
         glDisable(GL_BLEND);
 
         int numButtons = std::size(menueData);
-        float buttonWidth = 400.0f;
-        float buttonHeight = 100.0f;
-        float buttonSpacing = 50.0f;
+        float buttonWidth = 400.0f * scaleFactor;
+        float buttonHeight = 100.0f * scaleFactor;
+        float buttonSpacing = 50.0f * scaleFactor;
         float totalHeight = numButtons * buttonHeight + (numButtons - 1) * buttonSpacing;
         float startY = (height - totalHeight) / 2.0f;
 
@@ -1367,18 +1369,18 @@ public:
             float buttonY = startY + i * (buttonHeight + buttonSpacing);
             drawRectangle(buttonX, buttonY, buttonWidth, buttonHeight);
 
-            float textwidth = getTextWidth(menueData[i].text, 55.0f);
+            float textwidth = getTextWidth(menueData[i].text, 55.0f * scaleFactor);
             float textX = buttonX + (buttonWidth - textwidth) / 2.0f;  
-            float textY = buttonY + (buttonHeight + 55.0f) / 2.0f;
+            float textY = buttonY + (buttonHeight + 55.0f * scaleFactor) / 2.0f;
 
             if (i < currentButton) {
-                renderText(menueData[i].text, textX, textY, 55.0f, fontTexture);
+                renderText(menueData[i].text, textX, textY, 55.0f * scaleFactor, fontTexture);
             } else if (i == currentButton) {
                 std::string displayText = menueData[i].text.substr(0, charIndices[i]);
                 if (charIndices[i] < menueData[i].text.length()) {
                     displayText += "_";
                 }
-                renderText(displayText, textX, textY, 55.0f, fontTexture);
+                renderText(displayText, textX, textY, 55.0f * scaleFactor, fontTexture);
                 
                 static float lastPrintTime = 0.0f;
                 float currentTime = glfwGetTime();
