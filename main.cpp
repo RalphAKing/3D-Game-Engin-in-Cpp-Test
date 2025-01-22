@@ -267,7 +267,7 @@ struct PhysicsObject {
         velocityX = velocityY = velocityZ = 0.0f;
         rotationX = rotationY = rotationZ = 0.01f;
         angularVelocityX = angularVelocityY = angularVelocityZ = 0.01f;
-        mass = 1.0f;
+        mass = 5.0f;
         friction = 0.9f; 
         restitution = 0.3f;  
 
@@ -278,9 +278,9 @@ struct PhysicsObject {
     }
     
     void update(float deltaTime) {
-        const float GRAVITY = -1.0f;
+        const float GRAVITY = -16.0f;
         const float VELOCITY_THRESHOLD = 0.01f;
-        const float ANGULAR_DAMPING = 0.9f;
+        const float ANGULAR_DAMPING = 0.8f;
         velocityY += GRAVITY * deltaTime;
         float prevX = x;
         float prevY = y;
@@ -883,7 +883,7 @@ void updateHeldObject() {
     PhysicsObject& obj = physicsObjects[heldObjectIndex];
     
     float springStrength = 15.0f;
-    float dampingFactor = 0.85f;
+    float dampingFactor = 0.95f;
 
     float dx = targetX - obj.x;
     float dy = targetY - obj.y;
@@ -1417,6 +1417,7 @@ void display(GLFWwindow* window) {
         accumulator += deltaTime;
         while (accumulator >= fixedTimeStep) {
             updateMovement();  
+            updatePhysicsObjects(fixedTimeStep);
             accumulator -= fixedTimeStep;  
         }
 
@@ -1433,7 +1434,6 @@ void display(GLFWwindow* window) {
         drawGrids(GRID_WIDTH, 1.0f);
         drawPlatforms();
         updateHeldObject();
-        updatePhysicsObjects(fixedTimeStep);
         drawPhysicsObjects();
         GUI::drawHUD(); 
     }
