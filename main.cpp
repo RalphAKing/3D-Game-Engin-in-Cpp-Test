@@ -529,13 +529,7 @@ void updatePhysicsObjects(float deltaTime) {
     checkPlayerPhysicsObjectCollision();
 }
 
-void drawPhysicsObjects() {
-    for (auto& obj : physicsObjects) {
-        obj.draw();
-    }
-}
-
-int IsObjectInfront(float& distance) {
+int IsObjectInfront() {
     float playerRadius = 5.0f;
     float playerHeight = 2.2f;
     
@@ -553,11 +547,33 @@ int IsObjectInfront(float& distance) {
 
         if (horizontalDistance < (playerRadius + obj.size/2) &&
             fabs(angle) < (M_PI / 6.0f)) {
-            distance = horizontalDistance;
             return i;
         }
     }
     return -1;
+}
+
+bool Objectfrustum(const PhysicsObject& obj) {
+    float playerRadius = 100.0f;
+    float playerHeight = 2.2f;
+    float FOV_RADIANS = M_PI / 4.8f; 
+    
+    float dx = obj.x - camX;
+    float dz = obj.z - camZ;
+    float dy = (obj.y + obj.size/2) - (camY - playerHeight/2);
+    float horizontalDistance = sqrt(dx*dx + dz*dz);
+
+    float radYaw = camYaw * 3.14159f / 180.0f;
+    float angle = atan2(dx, -dz) - radYaw;
+    while (angle > M_PI) angle -= 2 * M_PI;
+    while (angle < -M_PI) angle += 2 * M_PI;
+
+    if (horizontalDistance < (playerRadius + obj.size/2) &&
+        fabs(angle) < FOV_RADIANS) {
+        return true;
+    }
+
+    return false;
 }
 
 bool isInFrustum(const Platform& platform, const Frustum& frustum) {
@@ -720,6 +736,14 @@ void drawPlatforms() {
     }
 }
 
+void drawPhysicsObjects() {
+    float distance;
+    for (auto& obj : physicsObjects) {
+        if (Objectfrustum(obj)) {
+            obj.draw();
+        }
+    }
+}
 
 
 void drawPlatformWireframes() {
@@ -943,9 +967,8 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         }
 
         if (key == GLFW_KEY_E && action == GLFW_PRESS) {
-            float distance;
             if (!isHoldingObject) {
-                int objectIndex = IsObjectInfront(distance);
+                int objectIndex = IsObjectInfront();
                 if (objectIndex >= 0) {
                     isHoldingObject = true;
                     heldObjectIndex = objectIndex;
