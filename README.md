@@ -25,6 +25,7 @@ A cutting-edge 3D game engine crafted in C++ and powered by OpenGL. This robust 
 - Create physics block with spacific size and starting possition.
 - They detect collisions with other physics objects aswell as platforms and the player.
 - When stepped on a physics object will repel away from the player according to the weight of the player.
+- Physcis objects will not be rendered if not in view of the camera to increese proformance.
 
 ### Graphical User Interface (GUI)
 - Customizable fixed GUI layout.
