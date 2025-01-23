@@ -266,9 +266,9 @@ struct PhysicsObject {
     PhysicsObject() : x(0.0f), y(0.0f), z(0.0f), size(1.0f) {
         velocityX = velocityY = velocityZ = 0.0f;
         rotationX = rotationY = rotationZ = 0.01f;
-        angularVelocityX = angularVelocityY = angularVelocityZ = 0.01f;
+        angularVelocityX = angularVelocityY = angularVelocityZ = 0.02f;
         mass = 5.0f;
-        friction = 0.9f; 
+        friction = 2.5f; 
         restitution = 0.3f;  
 
         wobbleX = wobbleZ = 0.05f;
@@ -423,7 +423,7 @@ std::vector<PhysicsObject> physicsObjects;
 
 
 void checkPlayerPhysicsObjectCollision() {
-    float playerRadius = 0.5f;
+    float playerRadius = 0.7f;
     float playerHeight = 2.2f; 
     float stepHeight = 0.5f;  
     
@@ -449,7 +449,7 @@ void checkPlayerPhysicsObjectCollision() {
                 
                 obj.applyForce(dx * pushStrength, dz * pushStrength);
                 
-                float playerPushback = 0.1f;
+                float playerPushback = 0.06f;
                 camX -= dx * playerPushback;
                 camZ -= dz * playerPushback;
                 
