@@ -1337,11 +1337,13 @@ public:
         drawRect(x, y, barWidth, height, 0.0f, 0.0f, 1.0f); 
     }
     static void drawHUD() {
-
+        int width, height;
+        glfwGetWindowSize(glfwGetCurrentContext(), &width, &height);
+        float scaleFactor = std::min(static_cast<float>(width) / 640.0f, static_cast<float>(height) / 480.0f);
         glMatrixMode(GL_PROJECTION);
         glPushMatrix();
         glLoadIdentity();
-        glOrtho(0, 640, 480, 0, -1, 1);  
+        glOrtho(0, width, height, 0, -1, 1);
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
         glLoadIdentity();
@@ -1349,9 +1351,9 @@ public:
         glDisable(GL_BLEND);
         if (FPScount) {
             std::string fpsText = "FPS: " + std::to_string(static_cast<int>(frameCount / (glfwGetTime() - lastFPSUpdate)));
-            renderText(fpsText, 540.0f, 10.0f, 15.0f, fontTexture); 
+            renderText(fpsText, 650.0f * scaleFactor, 10.0f * scaleFactor, 15.0f * scaleFactor, fontTexture); 
         }
-        drawStaminaBar(10.0f, 10.0f, 100.0f, 10.0f, stamina); 
+        drawStaminaBar(10.0f * scaleFactor, 10.0f  * scaleFactor, 100.0f * scaleFactor, 10.0f * scaleFactor, stamina); 
 
         glMatrixMode(GL_PROJECTION);
         glPopMatrix();
