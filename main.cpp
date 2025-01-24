@@ -8,6 +8,8 @@
 #include "src/include/json.hpp"
 #include <fstream>
 using json = nlohmann::json;
+int currentRenderWidth;
+int currentRenderHeight;
 
 const int GRID_WIDTH = 10;
 const int GRID_HEIGHT = 10;
@@ -52,6 +54,9 @@ int Vsync = 0;
 bool FPScount = false; 
 bool isFullscreen = true;
 std::string lastmap;
+bool lowgraphics = false;
+int highwidth;
+int highheight;
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
@@ -201,6 +206,24 @@ void toggleFullscreen(GLFWwindow* window) {
     }
 }
 
+void changeResolution(GLFWwindow* window, int width, int height) {
+    currentRenderWidth = width;
+    currentRenderHeight = height;
+    
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+    
+    if (isFullscreen) {
+        glfwSetWindowMonitor(window, monitor, 0, 0, currentRenderWidth, currentRenderHeight, mode->refreshRate);
+    } else {
+        int xpos = (mode->width - width) / 2;
+        int ypos = (mode->height - height) / 2;
+        glfwSetWindowMonitor(window, nullptr, xpos, ypos, currentRenderWidth, currentRenderHeight, mode->refreshRate);
+    }
+    
+    framebuffer_size_callback(window, currentRenderWidth, currentRenderHeight);
+}
+
 struct Frustum {
     float nearD, farD, aspect, fov;
     float nearH, nearW, farH, farW;
@@ -227,6 +250,7 @@ menuedata menueData[] = {
     {"Toggle FPS"},
     {"Toggle VSync"},
     {"Wireframs"},
+    {"Toggle Low"},
     {"Fullscreen"},
     {"Resume"}
 };
@@ -1225,6 +1249,13 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
                     toggleFullscreen(window);
                 } else if (menueData[i].text == "Wireframs") {
                     wireframs = !wireframs;
+                } else if (menueData[i].text == "Toggle Low") {
+                    lowgraphics = !lowgraphics;
+                    if (lowgraphics) {
+                        changeResolution(window, highwidth/2, highheight/2);
+                    } else {
+                        changeResolution(window, highwidth, highheight);
+                    }
                 }
             }
         }
@@ -1483,7 +1514,12 @@ int main() {
 
     const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
 
-    GLFWwindow* window = glfwCreateWindow(mode->width, mode->height, "Fullscreen Window", primaryMonitor, NULL);
+    currentRenderWidth = mode->width;
+    currentRenderHeight= mode->height;
+    highwidth=currentRenderWidth;
+    highheight=currentRenderHeight;
+    GLFWwindow* window = glfwCreateWindow(currentRenderWidth, currentRenderHeight, "Fullscreen Window", primaryMonitor, NULL);
+
     if (!window) {
         glfwTerminate();
         return -1;
