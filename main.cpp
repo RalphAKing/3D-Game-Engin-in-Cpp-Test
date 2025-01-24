@@ -289,7 +289,6 @@ struct PhysicsObject {
         x += velocityX * deltaTime;
         y += velocityY * deltaTime;
         z += velocityZ * deltaTime;
-        bool met=false;
         for (const auto& platform : platforms) {
             bool isWithinXBounds = x >= platform.x - platform.width/2 - size/2 && 
                                 x <= platform.x + platform.width/2 + size/2;
@@ -300,38 +299,25 @@ struct PhysicsObject {
             
             if (isWithinXBounds && isWithinZBounds) {
                 if (prevY - size/2 >= platformTop && y - size/2 <= platformTop) {
-                    met = true;
-                }
-                
-            }
-
-        }
-        for (const auto& platform : platforms) {
-            bool isWithinXBounds = x >= platform.x - platform.width/2 - size/2 && 
-                                x <= platform.x + platform.width/2 + size/2;
-            bool isWithinZBounds = z >= platform.z - platform.depth/2 - size/2 && 
-                                z <= platform.z + platform.depth/2 + size/2;
-            float platformTop = platform.height + platform.heightdelta;
-            float platformBottom = platform.heightdelta;
-            
-            if (isWithinXBounds && isWithinZBounds) {
-                if (prevY - size/2 >= platformTop && y - size/2 <= platformTop) {
-                    met = true;
                     y = platformTop + size/2;
                     velocityY = -velocityY * restitution;
                     velocityX *= (1.0f - friction * deltaTime);
                     velocityZ *= (1.0f - friction * deltaTime);
+                    if (prevY - size/2 >= platformTop && y - size/2 <= platformTop) {
+                        velocityY=0;
+                        y=platformTop + size/2 + 0.01;
+                    }
 
                     if (abs(velocityY) > 1.0f) {
                         angularVelocityX += (rand() % 100 - 50) / 50.0f;
                         angularVelocityZ += (rand() % 100 - 50) / 50.0f;
                     }
                 }
-                else if (prevY + size/2 <= platformBottom && y + size/2 > platformBottom && !met) {
+                else if (prevY + size/2 <= platformBottom && y + size/2 > platformBottom) {
                     y = platformBottom - size/2;
                     velocityY = -velocityY * restitution;
                 }
-                else if (y + size/2 > platformBottom && y - size/2 < platformTop && !met) {
+                else if (y + size/2 > platformBottom && y - size/2 < platformTop) {
                     if (prevX + size/2 <= platform.x - platform.width/2 || 
                         prevX - size/2 >= platform.x + platform.width/2) {
                         x = prevX;
