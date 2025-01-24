@@ -1252,7 +1252,8 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
                 } else if (menueData[i].text == "Toggle Low") {
                     lowgraphics = !lowgraphics;
                     if (lowgraphics) {
-                        changeResolution(window, highwidth/2, highheight/2);
+                        int newwidth=highwidth/2;
+                        changeResolution(window, newwidth, ((newwidth*highheight)/highwidth));
                     } else {
                         changeResolution(window, highwidth, highheight);
                     }
