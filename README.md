@@ -4,7 +4,7 @@ A cutting-edge 3D game engine crafted in C++ and powered by OpenGL. This robust 
 
 ## Know Bugs
 - Menu gittering when entering it while moving. 
-- Stamina bar and fps hidden when chaning the resoloution.
+- Stamina bar and fps hidden when chaning to low mode.
 ## Features
 
 ### Player Movement
