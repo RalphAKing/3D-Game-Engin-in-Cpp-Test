@@ -8,8 +8,6 @@
 #include "src/include/json.hpp"
 #include <fstream>
 using json = nlohmann::json;
-int currentRenderWidth;
-int currentRenderHeight;
 
 const int GRID_WIDTH = 10;
 const int GRID_HEIGHT = 10;
@@ -1491,10 +1489,7 @@ int main() {
 
     const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
 
-    currentRenderWidth = mode->width;
-    currentRenderHeight= mode->height;
-
-    GLFWwindow* window = glfwCreateWindow(currentRenderWidth, currentRenderHeight, "Fullscreen Window", primaryMonitor, NULL);
+    GLFWwindow* window = glfwCreateWindow(mode->width, mode->height, "Fullscreen Window", primaryMonitor, NULL);
 
     if (!window) {
         glfwTerminate();
