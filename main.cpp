@@ -52,6 +52,7 @@ int Vsync = 0;
 bool FPScount = false; 
 bool isFullscreen = true;
 std::string lastmap;
+std::string currentmap;
 
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -73,6 +74,17 @@ void loadLevelTextures();
 GLuint fontTexture;
 int fontWidth, fontHeight;
 GLuint platformTexture;
+
+void saveSettings() {
+    json settingsData;
+    settingsData["vsync"] = Vsync;
+    settingsData["fpscount"] = FPScount; 
+    settingsData["wireframs"] = wireframs;
+    settingsData["lastmap"] = currentmap;
+
+    std::ofstream file("assets/settings.json");
+    file << settingsData.dump(4);
+}
 
 void loadFont(const char* filePath) {
     int channels;
@@ -653,6 +665,28 @@ void loadmap(const std::string& mapName) {
     loadLevelTextures();
 }
 
+void loadsettings() {
+    lastmap = "default"; // Add default map name
+    std::string settingspath = "assets/settings.json";
+    std::ifstream file(settingspath);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open settings file: " << settingspath << std::endl;
+        return;
+    }
+
+    try {
+        json settingsData = json::parse(file);
+        Vsync = settingsData["vsync"];
+        FPScount = settingsData["fpscount"];
+        wireframs = settingsData["wireframs"];
+        if (!settingsData["lastmap"].empty()) {
+            lastmap = settingsData["lastmap"];
+        }
+        
+    } catch (json::exception& e) {
+        std::cerr << "JSON parsing error: " << e.what() << std::endl;
+    }
+}
 
 
 
@@ -945,6 +979,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
                 camPitch = savedCamPitch;
                 glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
                 wasMenuClosed=true;
+                saveSettings();
             }
         }
 
@@ -1098,6 +1133,8 @@ void updateMovement() {
         velocityY=0.0f;
         nojump = true;
         if (lastmap != "") {
+            currentmap=lastmap;
+            saveSettings();
             loadmap(lastmap);
             lastmap = "";
         }
@@ -1219,6 +1256,7 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
                     camPitch = savedCamPitch;
                     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
                     wasMenuClosed = true;
+                    saveSettings();
                 } else if (menueData[i].text == "Toggle FPS") {
                     FPScount = !FPScount;
                 } else if (menueData[i].text == "Toggle VSync") {
@@ -1525,7 +1563,9 @@ int main() {
     glfwGetFramebufferSize(window, &width, &height);
     framebuffer_size_callback(window, width, height);
 
-    loadmap("empty");
+    loadsettings();
+    currentmap=lastmap;
+    loadmap(lastmap);
     
     while (!glfwWindowShouldClose(window)) {
 
