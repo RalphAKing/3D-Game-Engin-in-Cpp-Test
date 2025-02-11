@@ -578,38 +578,37 @@ bool Objectfrustum(const PhysicsObject& obj) {
 }
 
 bool isInFrustum(const Platform& platform, const Frustum& frustum) {
-    float radYaw = camYaw * 3.14159f / 180.0f;
-    float screenEdgeAngle = frustum.fov / 2;
-    float bufferAngle = 20.0f * (M_PI/180.0f); 
+    static constexpr float PI = 3.14159265359f;
+    static constexpr float DEG_TO_RAD = PI / 180.0f;
+    static constexpr float BUFFER_ANGLE = 20.0f * DEG_TO_RAD;
+
+    const float radYaw = camYaw * DEG_TO_RAD;
+    const float totalAngle = frustum.fov * 0.5f + BUFFER_ANGLE;
     
-    float leftEdge = radYaw - (screenEdgeAngle + bufferAngle);
-    float rightEdge = radYaw + (screenEdgeAngle + bufferAngle);
-
-    float corners[4][2] = {
-        {platform.x - platform.width/2, platform.z - platform.depth/2},
-        {platform.x + platform.width/2, platform.z - platform.depth/2},
-        {platform.x - platform.width/2, platform.z + platform.depth/2},
-        {platform.x + platform.width/2, platform.z + platform.depth/2}
-    };
-
-    float minAngle = M_PI;
-    float maxAngle = -M_PI;
-
-    for(int i = 0; i < 4; i++) {
-        float dx = corners[i][0] - camX;
-        float dz = corners[i][1] - camZ;
-        float angle = atan2(dx, -dz);
-        float relativeAngle = angle - radYaw;
-        
-        while(relativeAngle > M_PI) relativeAngle -= 2 * M_PI;
-        while(relativeAngle < -M_PI) relativeAngle += 2 * M_PI;
-
-        minAngle = std::min(minAngle, relativeAngle);
-        maxAngle = std::max(maxAngle, relativeAngle);
-    }
-
-
-    return (maxAngle < -(screenEdgeAngle + bufferAngle) || minAngle > (screenEdgeAngle + bufferAngle));
+    const float centerX = platform.x;
+    const float centerZ = platform.z;
+    const float halfWidth = platform.width * 0.5f;
+    const float halfDepth = platform.depth * 0.5f;
+    
+    const float dx = centerX - camX;
+    const float dz = centerZ - camZ;
+    
+    const float distSquared = dx * dx + dz * dz;
+    if (distSquared < 0.0001f) return false; 
+    
+    const float centerAngle = atan2(dx, -dz) - radYaw;
+    
+    const float maxRadius = std::sqrt(halfWidth * halfWidth + halfDepth * halfDepth);
+    const float maxAngularDeviation = std::asin(maxRadius / std::sqrt(distSquared));
+    
+    float normalizedAngle = centerAngle;
+    while (normalizedAngle > PI) normalizedAngle -= 2 * PI;
+    while (normalizedAngle < -PI) normalizedAngle += 2 * PI;
+    
+    const float minPossibleAngle = normalizedAngle - maxAngularDeviation;
+    const float maxPossibleAngle = normalizedAngle + maxAngularDeviation;
+    std::cerr << (maxPossibleAngle < -totalAngle || minPossibleAngle > totalAngle) << std::endl;
+    return (maxPossibleAngle < -totalAngle || minPossibleAngle > totalAngle);
 }
 
 
