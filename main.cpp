@@ -747,22 +747,42 @@ void drawCube(float size, GLuint textureID) {
 
 void drawPlatforms() {
     static Frustum frustum;
-    int width, height;
-    glfwGetWindowSize(glfwGetCurrentContext(), &width, &height);
-    frustum.update(45.0f, (float)width/height, 0.1f, 100.0f);
-
-
+    static float lastUpdateTime = 0.0f;
+    const float updateInterval = 0.1f; 
+    
+    float currentTime = glfwGetTime();
+    if (currentTime - lastUpdateTime > updateInterval) {
+        int width, height;
+        glfwGetWindowSize(glfwGetCurrentContext(), &width, &height);
+        frustum.update(45.0f, (float)width/height, 0.1f, 100.0f);
+        lastUpdateTime = currentTime;
+    }
+    
+    std::vector<const Platform*> visiblePlatforms;
+    visiblePlatforms.reserve(platforms.size());
+    
     for (const auto& platform : platforms) {
-        bool visible = isInFrustum(platform, frustum);
-          
-        if (visible) {
-            continue;
+        if (!isInFrustum(platform, frustum)) {
+            visiblePlatforms.push_back(&platform);
+        }
+    }
+
+    std::sort(visiblePlatforms.begin(), visiblePlatforms.end(),
+        [](const Platform* a, const Platform* b) {
+            return a->textureID < b->textureID;
+        });
+    
+    GLuint currentTexture = 0;
+    for (const Platform* platform : visiblePlatforms) {
+        if (platform->textureID != currentTexture) {
+            currentTexture = platform->textureID;
+            glBindTexture(GL_TEXTURE_2D, currentTexture);
         }
         
         glPushMatrix();
-        glTranslatef(platform.x, (platform.height / 2.0f) + platform.heightdelta, platform.z);
-        glScalef(platform.width, platform.height, platform.depth);
-        drawCube(1.0f, platform.textureID);
+        glTranslatef(platform->x, (platform->height / 2.0f) + platform->heightdelta, platform->z);
+        glScalef(platform->width, platform->height, platform->depth);
+        drawCube(1.0f, currentTexture);
         glPopMatrix();
     }
 }
