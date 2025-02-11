@@ -465,70 +465,80 @@ void checkPlayerPhysicsObjectCollision() {
     }
 }
 
+void checkObjectCollision(PhysicsObject& obj1, PhysicsObject& obj2) {
+    float dx = obj2.x - obj1.x;
+    float dy = obj2.y - obj1.y;
+    float dz = obj2.z - obj1.z;
+    float distance = sqrt(dx*dx + dy*dy + dz*dz);
 
-void checkObjectCollisions() {
-    for (size_t i = 0; i < physicsObjects.size(); i++) {
-        for (size_t j = i + 1; j < physicsObjects.size(); j++) {
-            PhysicsObject& obj1 = physicsObjects[i];
-            PhysicsObject& obj2 = physicsObjects[j];
-
-            float dx = obj2.x - obj1.x;
-            float dy = obj2.y - obj1.y;
-            float dz = obj2.z - obj1.z;
-            float distance = sqrt(dx*dx + dy*dy + dz*dz);
-
-            float minDist = (obj1.size + obj2.size) / 2.0f;
-            if (distance < minDist) {
-                if (distance > 0) {
-                    dx /= distance;
-                    dy /= distance;
-                    dz /= distance;
-                }
-
-                float overlap = minDist - distance;
-
-                float relativeVelX = obj1.velocityX - obj2.velocityX;
-                float relativeVelY = obj1.velocityY - obj2.velocityY;
-                float relativeVelZ = obj1.velocityZ - obj2.velocityZ;
-
-                float impulse = -(1.0f + obj1.restitution * obj2.restitution) * 
-                              (relativeVelX * dx + relativeVelY * dy + relativeVelZ * dz) /
-                              (1.0f/obj1.mass + 1.0f/obj2.mass);
-
-                obj1.velocityX += (impulse / obj1.mass) * dx;
-                obj1.velocityY += (impulse / obj1.mass) * dy;
-                obj1.velocityZ += (impulse / obj1.mass) * dz;
-
-                obj2.velocityX -= (impulse / obj2.mass) * dx;
-                obj2.velocityY -= (impulse / obj2.mass) * dy;
-                obj2.velocityZ -= (impulse / obj2.mass) * dz;
-
-                float moveAmount1 = overlap * (obj2.mass / (obj1.mass + obj2.mass));
-                float moveAmount2 = overlap * (obj1.mass / (obj1.mass + obj2.mass));
-
-                obj1.x -= dx * moveAmount1;
-                obj1.y -= dy * moveAmount1;
-                obj1.z -= dz * moveAmount1;
-
-                obj2.x += dx * moveAmount2;
-                obj2.y += dy * moveAmount2;
-                obj2.z += dz * moveAmount2;
-
-                float spinForce = overlap * 10.0f;
-                obj1.angularVelocityY += (rand() % 100 - 50) / 50.0f * spinForce;
-                obj2.angularVelocityY += (rand() % 100 - 50) / 50.0f * spinForce;
-            }
+    float minDist = (obj1.size + obj2.size) / 2.0f;
+    if (distance < minDist) {
+        if (distance > 0) {
+            dx /= distance;
+            dy /= distance;
+            dz /= distance;
         }
+
+        float overlap = minDist - distance;
+
+        float relativeVelX = obj1.velocityX - obj2.velocityX;
+        float relativeVelY = obj1.velocityY - obj2.velocityY;
+        float relativeVelZ = obj1.velocityZ - obj2.velocityZ;
+
+        float impulse = -(1.0f + obj1.restitution * obj2.restitution) * 
+                      (relativeVelX * dx + relativeVelY * dy + relativeVelZ * dz) /
+                      (1.0f/obj1.mass + 1.0f/obj2.mass);
+
+        obj1.velocityX += (impulse / obj1.mass) * dx;
+        obj1.velocityY += (impulse / obj1.mass) * dy;
+        obj1.velocityZ += (impulse / obj1.mass) * dz;
+
+        obj2.velocityX -= (impulse / obj2.mass) * dx;
+        obj2.velocityY -= (impulse / obj2.mass) * dy;
+        obj2.velocityZ -= (impulse / obj2.mass) * dz;
+
+        float moveAmount1 = overlap * (obj2.mass / (obj1.mass + obj2.mass));
+        float moveAmount2 = overlap * (obj1.mass / (obj1.mass + obj2.mass));
+
+        obj1.x -= dx * moveAmount1;
+        obj1.y -= dy * moveAmount1;
+        obj1.z -= dz * moveAmount1;
+
+        obj2.x += dx * moveAmount2;
+        obj2.y += dy * moveAmount2;
+        obj2.z += dz * moveAmount2;
+
+        float spinForce = overlap * 10.0f;
+        obj1.angularVelocityY += (rand() % 100 - 50) / 50.0f * spinForce;
+        obj2.angularVelocityY += (rand() % 100 - 50) / 50.0f * spinForce;
     }
 }
 
 void updatePhysicsObjects(float deltaTime) {
-    for (auto& obj : physicsObjects) {
-        obj.update(deltaTime);
+    const int objectCount = physicsObjects.size();
+    
+    #pragma omp parallel for
+    for (int i = 0; i < objectCount; i++) {
+        physicsObjects[i].update(deltaTime);
     }
-    checkObjectCollisions(); 
+    
+    for (int i = 0; i < objectCount; i++) {
+        for (int j = i + 1; j < objectCount; j++) {
+            const float dx = std::abs(physicsObjects[i].x - physicsObjects[j].x);
+            const float dy = std::abs(physicsObjects[i].y - physicsObjects[j].y);
+            const float dz = std::abs(physicsObjects[i].z - physicsObjects[j].z);
+            const float maxDist = physicsObjects[i].size + physicsObjects[j].size;
+            
+            if (dx < maxDist && dy < maxDist && dz < maxDist) {
+                checkObjectCollision(physicsObjects[i], physicsObjects[j]);
+            }
+        }
+    }
+    
     checkPlayerPhysicsObjectCollision();
 }
+
+
 
 int IsObjectInfront() {
     float playerRadius = 5.0f;
@@ -607,7 +617,6 @@ bool isInFrustum(const Platform& platform, const Frustum& frustum) {
     
     const float minPossibleAngle = normalizedAngle - maxAngularDeviation;
     const float maxPossibleAngle = normalizedAngle + maxAngularDeviation;
-    std::cerr << (maxPossibleAngle < -totalAngle || minPossibleAngle > totalAngle) << std::endl;
     return (maxPossibleAngle < -totalAngle || minPossibleAngle > totalAngle);
 }
 
