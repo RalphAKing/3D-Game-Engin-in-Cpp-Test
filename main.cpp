@@ -1336,29 +1336,51 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
 
 
 void drawGrid(int lines, float spacing, float r, float g, float b) {
-    glColor3f(r, g, b);
-    glBegin(GL_LINES);
+    const float bound = lines * spacing;
+   
+    const int vertexCount = (lines * 2 + 1) * 4;
+    float vertices[vertexCount * 3];
+    int idx = 0;
+
     for (int i = -lines; i <= lines; ++i) {
-        glVertex3f(i * spacing, 0.0f, -lines * spacing);
-        glVertex3f(i * spacing, 0.0f, lines * spacing);
-        glVertex3f(-lines * spacing, 0.0f, i * spacing);
-        glVertex3f(lines * spacing, 0.0f, i * spacing);
+        const float pos = i * spacing;
+
+        vertices[idx++] = pos;
+        vertices[idx++] = 0.0f;
+        vertices[idx++] = -bound;
+        
+        vertices[idx++] = pos;
+        vertices[idx++] = 0.0f;
+        vertices[idx++] = bound;
+        
+        vertices[idx++] = -bound;
+        vertices[idx++] = 0.0f;
+        vertices[idx++] = pos;
+        
+        vertices[idx++] = bound;
+        vertices[idx++] = 0.0f;
+        vertices[idx++] = pos;
     }
-    glEnd();
+    
+    glColor3f(r, g, b);
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glVertexPointer(3, GL_FLOAT, 0, vertices);
+    glDrawArrays(GL_LINES, 0, vertexCount);
+    glDisableClientState(GL_VERTEX_ARRAY);
 }
 
 void drawGrids(int lines, float spacing) {
-
     glPushMatrix();
-    glTranslatef(0.0f, -0.01f, 0.0f); 
-    drawGrid(lines, spacing, 0.0f, 1.0f, 0.0f); 
-    glPopMatrix();
 
-    glPushMatrix();
+    glTranslatef(0.0f, -0.01f, 0.0f);
+    drawGrid(lines, spacing, 0.0f, 1.0f, 0.0f);
+
     glTranslatef(0.0f, lines * spacing * 2.0f, 0.0f);
-    drawGrid(lines, spacing, 0.0f, 0.0f, 1.0f); 
+    drawGrid(lines, spacing, 0.0f, 0.0f, 1.0f);
+    
     glPopMatrix();
-
+    
     drawWalls(lines, spacing);
 }
 
