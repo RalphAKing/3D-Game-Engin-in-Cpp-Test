@@ -674,7 +674,7 @@ void loadmap(const std::string& mapName) {
 }
 
 void loadsettings() {
-    lastmap = "default"; // Add default map name
+    lastmap = "empty"; // Add default map name
     std::string settingspath = "assets/settings.json";
     std::ifstream file(settingspath);
     if (!file.is_open()) {
