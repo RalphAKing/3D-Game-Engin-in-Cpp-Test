@@ -1,6 +1,6 @@
 {
-    "fpscount": false,
+    "fpscount": true,
     "lastmap": "map2",
     "vsync": 0,
-    "wireframs": true
+    "wireframs": false
 }
