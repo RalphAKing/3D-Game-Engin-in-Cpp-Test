@@ -1399,10 +1399,95 @@ public:
     }
 };
 
+// class MENU {
+// public:
+//     static void drawRectangle(float x, float y, float width, float height) {
+//         glColor3f(0.2, 0.2, 0.2);
+//         glBegin(GL_QUADS);
+//         glVertex2f(x, y);               
+//         glVertex2f(x + width, y);      
+//         glVertex2f(x + width, y + height); 
+//         glVertex2f(x, y + height);     
+//         glEnd();
+//     }
+//     static void drawMENU(GLFWwindow* window) {
+//         static int currentButton = 0;
+//         static std::vector<size_t> charIndices;
+//         int width, height;
+//         if (wasMenuClosed) {
+//             currentButton = 0;
+//             charIndices.clear();
+//             wasMenuClosed = false;
+//         }
+//         glfwGetWindowSize(window, &width, &height);
+//         float scaleFactor = std::min(static_cast<float>(width) / 1920.0f, static_cast<float>(height) / 1080.0f);
+
+//         glMatrixMode(GL_PROJECTION);
+//         glPushMatrix();
+//         glLoadIdentity();
+//         glOrtho(0, width, 0, height, -1, 1); 
+//         glMatrixMode(GL_MODELVIEW);
+//         glPushMatrix();
+//         glLoadIdentity();
+//         glDisable(GL_DEPTH_TEST);
+//         glDisable(GL_BLEND);
+
+//         int numButtons = std::size(menueData);
+//         float buttonWidth = 400.0f * scaleFactor;
+//         float buttonHeight = 100.0f * scaleFactor;
+//         float buttonSpacing = 50.0f * scaleFactor;
+//         float totalHeight = numButtons * buttonHeight + (numButtons - 1) * buttonSpacing;
+//         float startY = (height - totalHeight) / 2.0f;
+
+        
+//         if (charIndices.empty()) {
+//             charIndices.resize(numButtons, 0);
+//         }
+
+//         for (int i = 0; i < numButtons; ++i) {
+//             float buttonX = (width - buttonWidth) / 2.0f;
+//             float buttonY = startY + i * (buttonHeight + buttonSpacing);
+//             drawRectangle(buttonX, buttonY, buttonWidth, buttonHeight);
+
+//             float textwidth = getTextWidth(menueData[i].text, 55.0f * scaleFactor);
+//             float textX = buttonX + (buttonWidth - textwidth) / 2.0f;  
+//             float textY = buttonY + (buttonHeight + 55.0f * scaleFactor) / 2.0f;
+
+//             if (i < currentButton) {
+//                 renderText(menueData[i].text, textX, textY, 55.0f * scaleFactor, fontTexture);
+//             } else if (i == currentButton) {
+//                 std::string displayText = menueData[i].text.substr(0, charIndices[i]);
+//                 if (charIndices[i] < menueData[i].text.length()) {
+//                     displayText += "_";
+//                 }
+//                 renderText(displayText, textX, textY, 55.0f * scaleFactor, fontTexture);
+                
+//                 static float lastPrintTime = 0.0f;
+//                 float currentTime = glfwGetTime();
+//                 if (currentTime - lastPrintTime >= 0.03f) {
+//                     charIndices[i]++;
+//                     lastPrintTime = currentTime;
+//                     if (charIndices[i] > menueData[i].text.length()) {
+//                         currentButton++;
+//                         charIndices[i] = 0;
+//                     }
+//                 }
+//             }
+//         }
+
+
+//         glMatrixMode(GL_PROJECTION);
+//         glPopMatrix();
+//         glMatrixMode(GL_MODELVIEW);
+//         glPopMatrix();
+//     }
+// };
+
+
 class MENU {
 public:
-    static void drawRectangle(float x, float y, float width, float height) {
-        glColor3f(0.2, 0.2, 0.2);
+    static void drawRectangle(float x, float y, float width, float height, float r, float g, float b) {
+        glColor3f(r, g, b);
         glBegin(GL_QUADS);
         glVertex2f(x, y);               
         glVertex2f(x + width, y);      
@@ -1410,6 +1495,7 @@ public:
         glVertex2f(x, y + height);     
         glEnd();
     }
+
     static void drawMENU(GLFWwindow* window) {
         static int currentButton = 0;
         static std::vector<size_t> charIndices;
@@ -1439,7 +1525,6 @@ public:
         float totalHeight = numButtons * buttonHeight + (numButtons - 1) * buttonSpacing;
         float startY = (height - totalHeight) / 2.0f;
 
-        
         if (charIndices.empty()) {
             charIndices.resize(numButtons, 0);
         }
@@ -1447,7 +1532,43 @@ public:
         for (int i = 0; i < numButtons; ++i) {
             float buttonX = (width - buttonWidth) / 2.0f;
             float buttonY = startY + i * (buttonHeight + buttonSpacing);
-            drawRectangle(buttonX, buttonY, buttonWidth, buttonHeight);
+
+            if (menueData[i].text == "Toggle FPS") {
+                drawRectangle(buttonX, buttonY, buttonWidth, buttonHeight, 
+                            FPScount ? 0.2f : 1.0f,   
+                            FPScount ? 1.0f : 0.2f,    
+                            FPScount ? 0.2f : 0.2f);  
+            }
+            else if (menueData[i].text == "Toggle VSync") {
+                drawRectangle(buttonX, buttonY, buttonWidth, buttonHeight, 
+                            Vsync ? 0.2f : 1.0f,
+                            Vsync ? 1.0f : 0.2f,
+                            Vsync ? 0.2f : 0.2f);
+            }
+            else if (menueData[i].text == "Wireframs") {
+                drawRectangle(buttonX, buttonY, buttonWidth, buttonHeight, 
+                            wireframs ? 0.2f : 1.0f,
+                            wireframs ? 1.0f : 0.2f,
+                            wireframs ? 0.2f : 0.2f);
+            }
+            else if (menueData[i].text == "Fullscreen") {
+                drawRectangle(buttonX, buttonY, buttonWidth, buttonHeight, 
+                            isFullscreen ? 0.2f : 1.0f,
+                            isFullscreen ? 1.0f : 0.2f,
+                            isFullscreen ? 0.2f : 0.2f);
+            }
+            else if (menueData[i].text == "Resume") {
+                drawRectangle(buttonX, buttonY, buttonWidth, buttonHeight, 
+                            0.2f, 0.6f, 1.0f);
+            }
+            else if (menueData[i].text == "Quit") {
+                drawRectangle(buttonX, buttonY, buttonWidth, buttonHeight, 
+                            1.0f, 0.3f, 0.3f);
+            }
+            else {
+                drawRectangle(buttonX, buttonY, buttonWidth, buttonHeight, 
+                            0.35f, 0.35f, 0.4f);
+            }
 
             float textwidth = getTextWidth(menueData[i].text, 55.0f * scaleFactor);
             float textX = buttonX + (buttonWidth - textwidth) / 2.0f;  
@@ -1475,13 +1596,13 @@ public:
             }
         }
 
-
         glMatrixMode(GL_PROJECTION);
         glPopMatrix();
         glMatrixMode(GL_MODELVIEW);
         glPopMatrix();
     }
 };
+
 
 void display(GLFWwindow* window) {
     static float accumulator = 0.0f;
