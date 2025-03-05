@@ -1342,6 +1342,10 @@ void drawGrid(int lines, float spacing, float r, float g, float b) {
     float vertices[vertexCount * 3];
     int idx = 0;
 
+    glBindBuffer(GL_ARRAY_BUFFER, gridVBO);
+    glVertexPointer(3, GL_FLOAT, 0, 0);
+    glDrawArrays(GL_LINES, 0, vertexCount);
+
     for (int i = -lines; i <= lines; ++i) {
         const float pos = i * spacing;
 
